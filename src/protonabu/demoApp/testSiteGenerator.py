@@ -10,11 +10,11 @@ import unittest
 from pathlib import Path
 
 # [Additional]
-from protonabu.demoApp.siteModel import (
+from .siteModel import (
     Book, Chapter, Section, Page, TextElement, HeaderElement
 )
 # [Additional]
-from protonabu.demoApp.siteGenerator import SiteGenerator
+from .siteGenerator import SiteGenerator
 
 
 class TwoPageSitePdfExportTestCase(unittest.TestCase):
@@ -25,7 +25,7 @@ class TwoPageSitePdfExportTestCase(unittest.TestCase):
         """ to set up test directory and site model
         """
         # to set up sandbox test directory under testArea
-        self.testDir = Path(__file__).resolve().parents[1] / 'testArea' / 'test_site_pdf'
+        self.testDir = Path(__file__).resolve().parents[3] / 'testArea' / 'test_site_pdf'
         # [Opt "directory exists"]: to remove previous test directory
         if self.testDir.exists():
             shutil.rmtree(self.testDir)

@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "protonabu"
 version = "1.0.0"
-description = "Lightweight, language-agnostic fact parser and schema framework for Nabu"
+description = "Open source infrastructure for authoring Domain-Specific Languages (DSLs), originally facilitating the Nabu Design Language"
 readme = "README.md"
 authors = [
     { name = "Avner Ben" }
 ]
 license = { text = "MIT" }
 requires-python = ">=3.10"
-keywords = ["nabu", "design", "facts", "parser", "schema"]
+keywords = ["nabu", "design", "facts", "parser", "schema", "dsl"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -25,13 +25,8 @@ classifiers = [
     "Topic :: Software Development :: Code Generators",
     "Topic :: Software Development :: Compilers",
 ]
-
-[project.optional-dependencies]
-pdf = [
-    "weasyprint>=54.0",
-]
-dev = [
-    "pytest>=7.0",
+dependencies = [
+    "pyparsing>=3.0.0",
 ]
 
 [tool.setuptools.packages.find]

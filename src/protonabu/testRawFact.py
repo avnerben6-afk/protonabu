@@ -7,11 +7,11 @@
         - Generated: 11-Mar-2026
 """
 
-from protonabu.testing import BaseTestCase, test
-from protonabu.util.error import Error
+from .testing import BaseTestCase, test
+from .util.error import Error
 # [Additional]
-from protonabu.rawFact import RawFact
-from protonabu.rawFactTestData import testData
+from .rawFact import RawFact
+from .rawFactTestData import testData
 
 
 class RawFactTest(BaseTestCase):

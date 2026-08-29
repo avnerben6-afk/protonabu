@@ -19,7 +19,7 @@ from typing import Any, Iterator, Optional, Callable
 from .util.error import Error, InternalError, FactFileError
 from .util.stringUtil import unquote, unCamel
 # [Additional]
-from .progress import IProgressIndicator, DummyProgressIndicator
+from .util.progress import IProgressIndicator, DummyProgressIndicator
 # [Additional]
 from .rawFact import RawFact, ProtonabuParsingStack
 # [Additional]

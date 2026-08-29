@@ -16,23 +16,23 @@ import shutil
 from typing import Optional, Iterator
 import unittest
 
-from protonabu.util.error import Error, InternalError, FactFileError
-from protonabu.testing import test, TestBatch
+from .util.error import Error, InternalError, FactFileError
+from .testing import test, TestBatch
 # [Additional]
-from protonabu import tokenizedFact
+from . import tokenizedFact
 # [Additional]
-from protonabu import factParser
-from protonabu.rawFact import RawFact
-from protonabu.tokenizedFact import TokenizedFact
-from protonabu.factSnippet import (
+from . import factParser
+from .rawFact import RawFact
+from .tokenizedFact import TokenizedFact
+from .factSnippet import (
     ProtonabuSnippet, 
     ProtonabuSnippetInMemory,
     ProtonabuMemorySource
 )
 # [Additional]
-from protonabu.protonabuSchema import ProtonabuSchema
+from .protonabuSchema import ProtonabuSchema
 # [Additional]
-from protonabu.protonabuParser import (
+from .protonabuParser import (
     SnippetParser,
     ProtonabuParser,
     ImportingProtonabuParser,
@@ -403,7 +403,7 @@ PRODUCT: Another Product
         # ...to add import directive to test-case source
 
         # to write test-case import library on the disk
-        self.designPath = Path(__file__).resolve().parents[1] / 'testArea' / 'protonabu'
+        self.designPath = Path(__file__).resolve().parents[2] / 'testArea' / 'protonabu'
         path = self.designPath / 'user'
         path.mkdir(parents=True, exist_ok=True)
         with open(path / "sampleInsert.facts", 'w') as outp:
@@ -776,7 +776,7 @@ PRODUCT: quotedName
             ProtonabuSnippetInMemory(schema_src.strip().split('\n'), 'Test Schema')
         )
         parser = TestProtonabuParser(schema)
-        demo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'protonabu', 'demoApp', 'example', 'demo_site.facts'))
+        demo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'demoApp', 'example', 'demo_site.facts'))
         raw = RawFact(label='IMPORTING', arg=f'"{demo_path}"')
         raw.rank = 1
         raw.lineNumber = 1

@@ -5,8 +5,8 @@
         - Generated: 28-Aug-2026
 """
 
-from protonabu.testing import BaseTestCase, TestData, test
-from protonabu.util.loops import (
+from .testing import BaseTestCase, TestData, test
+from .util.loops import (
     first,
     find,
     findBehind,

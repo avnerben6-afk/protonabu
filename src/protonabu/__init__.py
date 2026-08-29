@@ -23,6 +23,10 @@ from .util.error import (
     ParsingError,
     FactFileError
 )
+from .util.progress import (
+    IProgressIndicator,
+    DummyProgressIndicator
+)
 
 __all__ = [
     'RawFact',
@@ -42,4 +46,6 @@ __all__ = [
     'InternalError',
     'ParsingError',
     'FactFileError',
+    'IProgressIndicator',
+    'DummyProgressIndicator',
 ]

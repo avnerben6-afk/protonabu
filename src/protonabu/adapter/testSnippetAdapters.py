@@ -10,25 +10,25 @@
 import json
 import xml.etree.ElementTree as ET
 
-from protonabu.testing import TestData, BaseTestCase, test
+from ..testing import TestData, BaseTestCase, test
 # [Additional]
-from protonabu.factSnippet import (
+from ..factSnippet import (
     ProtonabuSnippet,
     ProtonabuMemorySource,
     ProtonabuSnippetInMemory,
 )
 # [Additional]
-from protonabu.adapter.adapterFactory import snippetAdapterFactory
+from .adapterFactory import snippetAdapterFactory
 # [Additional]
-from protonabu.adapter.std.MarkdownSnippetAdapter.markdownSnippetAdapter import (
+from .std.MarkdownSnippetAdapter.markdownSnippetAdapter import (
     MarkdownSnippetAdapter, MarkdownAdapterSource
 )
 # [Additional]
-from protonabu.adapter.std.JsonSnippetAdapter.jsonSnippetAdapter import (
+from .std.JsonSnippetAdapter.jsonSnippetAdapter import (
     JsonSnippetAdapter, JsonAdapterSource
 )
 # [Additional]
-from protonabu.adapter.std.XmlSnippetAdapter.xmlSnippetAdapter import (
+from .std.XmlSnippetAdapter.xmlSnippetAdapter import (
     XmlSnippetAdapter, XmlAdapterSource
 )
 

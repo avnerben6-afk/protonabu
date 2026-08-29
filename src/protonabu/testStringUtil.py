@@ -5,8 +5,8 @@
         - Generated: 28-Aug-2026
 """
 
-from protonabu.testing import BaseTestCase, TestData, test
-from protonabu.util.stringUtil import (
+from .testing import BaseTestCase, TestData, test
+from .util.stringUtil import (
     IdCounter,
     NameMaker,
     nameMaker,
