@@ -1,0 +1,3 @@
+@startebnf
+PAGE = "quotedName" , { CAPTION | PREFIX | HEADER | TEXT | EMPHASIZED | CODE | CAPTION_LABEL | IMAGE | KEYWORD | CONTINUATION | ROW } ;
+@endebnf

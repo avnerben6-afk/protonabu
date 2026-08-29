@@ -1,0 +1,55 @@
+<svg height="195" width="347" name="" xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+            <path d="M 0,0 L 10,5 L 0,10 L 3,5 Z" style="stroke:Red; fill:Red; stroke-width:1" />
+        </marker>
+    </defs>
+       <!-- VisualRequiredColumn -->
+<!-- VisualRequiredColumn -->
+<!-- VisualRequiredColumn -->
+<!-- VisualRequired -->
+<line x1="10" y1="38" x2="38" y2="38" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="42" y="43" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to make fire</text>
+<g class="descriptor-cells">
+</g>
+<!-- VisualRequired -->
+<polyline points="42,45 42,61 44,63" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="63" x2="76" y2="63" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="80" y="67" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to start the fire</text>
+<g class="descriptor-cells">
+</g>
+<!-- VisualRequired -->
+<polyline points="44,64 42,66 42,85 44,87" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="87" x2="76" y2="87" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="80" y="91" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to keep the fire</text>
+<g class="descriptor-cells">
+</g>
+<!-- VisualRequired -->
+<text class="visually-hidden">opt: </text>
+<polyline points="80,93 80,109 82,111" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="82" y1="111" x2="122" y2="111" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<polyline points="82,114 86,111 87,111 91,114 91,115 88,118 87,118 87,121" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<circle cx="87" cy="124" r="1" stroke="Red" stroke-width="1" fill="none" />
+<text x="126" y="115" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to turn the logs</text>
+<g class="descriptor-cells">
+</g>
+<!-- VisualRequired -->
+<text class="visually-hidden">opt: </text>
+<polyline points="82,112 80,114 80,133 82,135" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="82" y1="135" x2="122" y2="135" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<polyline points="82,138 86,135 87,135 91,138 91,139 88,142 87,142 87,145" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<circle cx="87" cy="148" r="1" stroke="Red" stroke-width="1" fill="none" />
+<text x="126" y="139" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to add logs</text>
+<g class="descriptor-cells">
+</g>
+<!-- VisualRequired -->
+<text class="visually-hidden">opt: </text>
+<polyline points="82,136 80,138 80,157 82,159" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="82" y1="159" x2="122" y2="159" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<polyline points="82,162 86,159 87,159 91,162 91,163 88,166 87,166 87,169" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<circle cx="87" cy="172" r="1" stroke="Red" stroke-width="1" fill="none" />
+<text x="126" y="163" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to keep the fire (already expanded)</text>
+<g class="descriptor-cells">
+</g>
+</svg>

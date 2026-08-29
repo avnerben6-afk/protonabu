@@ -1,0 +1,1 @@
+# contrib adapter extensions

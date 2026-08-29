@@ -1,0 +1,59 @@
+<svg height="273" width="764" name="" xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+            <path d="M 0,0 L 10,5 L 0,10 L 3,5 Z" style="stroke:Red; fill:Red; stroke-width:1" />
+        </marker>
+    </defs>
+       <!-- Actor -->
+<rect width="134" height="22" x="150" y="40" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="134" height="22" x="154" y="36" rx="0" ry="0" fill="#f0f8ff" stroke="#000080" stroke-width="1" />
+<text x="159" y="52" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">
+	<tspan xml:space="preserve" x="159" y="52" dx="0" dy="0.0em">Resource Provider</tspan>
+</text>
+<!-- LifeLine -->
+<rect width="3" height="195" x="220" y="59" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="3" height="195" x="221" y="58" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Actor -->
+<rect width="103" height="22" x="435" y="40" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="103" height="22" x="439" y="36" rx="0" ry="0" fill="#f0f8ff" stroke="#000080" stroke-width="1" />
+<text x="444" y="52" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">
+	<tspan xml:space="preserve" x="444" y="52" dx="0" dy="0.0em">Helper Object</tspan>
+</text>
+<!-- LifeLine -->
+<rect width="3" height="195" x="489" y="59" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="3" height="195" x="490" y="58" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Message -->
+<line x1="22" y1="91" x2="214" y2="91" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<rect width="189" height="10" x="27" y="76" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="27" y="86" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to INITIALIZE Resource Provider</text>
+<!-- Activation -->
+<rect width="14" height="160" x="214" y="92" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="160" x="215" y="91" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Message -->
+<polyline points="229,113 269,113 271,115 271,135 269,137 229,137" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" fill="none" />
+<rect width="250" height="10" x="235" y="98" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="235" y="108" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to commence preparing internal resource</text>
+<!-- Message -->
+<line x1="230" y1="159" x2="483" y2="159" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<rect width="144" height="10" x="235" y="144" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="235" y="154" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to do something to help</text>
+<!-- Activation -->
+<rect width="14" height="46" x="483" y="160" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="46" x="484" y="159" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Message -->
+<line x1="498" y1="181" x2="245" y2="181" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<rect width="91" height="10" x="248" y="166" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="248" y="176" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to get resource</text>
+<!-- Activation -->
+<rect width="14" height="22" x="232" y="182" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="22" x="233" y="181" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Result -->
+<rect width="111" height="9" x="368" y="188" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="368" y="197" xml:space="preserve" font-size="11px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Half-baked resource</text>
+<line x1="247" y1="202" x2="483" y2="202" stroke="Red" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)" />
+<!-- Message -->
+<polyline points="229,228 269,228 271,230 271,250 269,252 229,252" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" fill="none" />
+<rect width="238" height="10" x="235" y="213" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="235" y="223" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to conclude preparing internal resource</text>
+</svg>

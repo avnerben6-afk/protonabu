@@ -1,0 +1,39 @@
+PRODUCT: Snippet Adapter Package
+    IMPLEMENTATION [PACKAGE]: SnippetAdapterPackage
+        NAMESPACE: SnippetAdapterPackage
+
+    PART: Fact Snippet Adapter
+        STEREOTYPE: ABSTRACT
+        IMPLEMENTATION: FactSnippetAdapter
+        CAPABILITY: to import facts thru <SUBSTITUTE Fact> Snippet Adapter
+            INPUT: "foreign format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "native format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: NativeFormatSnippet
+            IMPLEMENTATION [METHOD]: adaptInput
+        CAPABILITY: to export facts thru <SUBSTITUTE Fact> Snippet Adapter
+            INPUT: "native format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "foreign format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: ForeignFormatSnippet
+            IMPLEMENTATION [METHOD]: adaptOutput
+    END: PART // Fact Snippet Adapter
+
+    PART: JSON Snippet Adapter
+        IMPLEMENTATION: JsonSnippetAdapter
+        CAPABILITY: to import facts thru <JSON> Snippet Adapter
+            INPUT: "JSON snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "Native format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: NativeFormatSnippet
+            IMPLEMENTATION [METHOD]: adaptInput
+        CAPABILITY: to export facts thru <JSON> Snippet Adapter
+            INPUT: "Native format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "JSON format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: JSONFormatSnippet
+            IMPLEMENTATION [METHOD]: adaptOutput
+    END: PART // JSON Snippet Adapter
+
+END: PRODUCT // Snippet Adapter Package
+

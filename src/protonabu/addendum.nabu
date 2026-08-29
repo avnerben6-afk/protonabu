@@ -1,0 +1,67 @@
+PROJECT: Protonabu Package Project
+    ID
+        PROPERTY [AUTHOR]: Avner Ben
+            BULLET [CREATED]: 24-Aug-2026
+                BULLET: Separated from Nabu
+    ADMIN
+        DESIGN VERSION: 1
+    ROADMAP
+        TYPE: INDEPENDENT
+        STATE: PRODUCTION
+            
+PRODUCT: Protonabu Package
+    ID
+        PROPERTY [AUTHOR]: Avner Ben
+            BULLET [CREATED]: 06-Oct-2005
+                BULLET: Skilltree parser
+            BULLET [REVISED]: 1-Apr-2017
+                BULLET: Nabu Labeled-fact architecture
+            BULLET [IMPROVED]: 24-Aug-2026
+                BULLET: Prepared for separation
+        PROPERTY [GENERATOR]: Antigravity (Gemini 3.7 Flash)
+            BULLET [IMPROVED]: 24-Aug-2026
+
+    USE CASE: to compile <Protonabu> Parser source
+        TITLE: Parsing Fact Snippet from Source
+        REQUIRES: to INITIALIZE Protonabu Parser
+        REQUIRES: to compile <Protonabu> Parser source
+
+    USE CASE: to parse Schema tree
+        TITLE: Compiling and Validating Protonabu Syntax Schema
+        REQUIRES: to INITIALIZE Protonabu Schema
+        REQUIRES: to parse Schema tree
+
+    USE CASE: to parse one Labeled Fact raw elements from Fact stream
+        TITLE: Serializing and Deserializing Composite Facts
+        REQUIRES: to INITIALIZE Raw Fact
+        REQUIRES: to parse one Labeled Fact raw elements from Fact stream
+        REQUIRES: to restore Labeled Fact to one or more Fact lines
+
+    USE CASE: to report parse tree
+        TITLE: Reporting Protonabu Syntax Schema and Visual EBNF
+        REQUIRES: to report parse tree
+        REQUIRES: to report Protonabu schema under Label
+        REQUIRES: to print graphic EBNF diagram
+
+    USE CASE: to perform Protonabu Parser Test Cases
+        TITLE: Performing Protonabu Parser Test Cases
+        SCENARIO: Full Protonabu Parser test
+        IN SCENARIO [Full Protonabu Parser test]: to INITIALIZE Protonabu Schema Test Case [FOR to INITIALIZE test case]
+        REQUIRES: to perform Unit Test
+            SCANNING: "test cases"
+            REQUIRES: to test Protonabu syntax Schema parsing
+            REQUIRES: to test Protonabu tokenizing
+            REQUIRES: to test Protonabu parsing of imports
+            REQUIRES: to test bad multiple-modifier parsing
+            REQUIRES: to test Exit Validators mechanism
+            REQUIRES: to test unquoted Italian apostrophe parsing
+            REQUIRES: to test error fields and file attribute preservation
+
+    USE CASE: to perform Raw Fact Test Cases
+        TITLE: Performing Raw Fact Test Cases
+        REQUIRES: to perform Unit Test
+            SCANNING: "test cases"
+            REQUIRES: to INITIALIZE Raw Fact Test Case
+            REQUIRES: to perform Raw Fact test case
+
+

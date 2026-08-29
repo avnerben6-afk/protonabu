@@ -1,0 +1,91 @@
+PRODUCT: Testing Package
+    DESIGNATION: INFRASTRUCTURE
+    IMPLEMENTATION [PACKAGE]: testing
+        LANGUAGE: Python
+
+    PART: Test Batch
+        IMPLEMENTATION: TestBatch
+        CAPABILITY: to INITIALIZE Test Batch
+            IMPLEMENTATION [METHOD]: __init__
+
+    PART: Base Test Case
+        IMPLEMENTATION: BaseTestCase
+        CAPABILITY: to tear-down test case
+            IMPLEMENTATION [METHOD]: tearDown
+        CAPABILITY: to set-up test case
+            IMPLEMENTATION [METHOD]: setUp
+        CAPABILITY: to process the result of test case
+            INPUT: "actual"
+                IMPLEMENTATION [str]: actual
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: processResult
+        CAPABILITY: to perform test case action
+            OUTPUT: "result"
+                IMPLEMENTATION [Any]: Result
+            IMPLEMENTATION [METHOD]: doRunTest
+        CAPABILITY: to load test case
+            IMPLEMENTATION [METHOD]: load
+        CAPABILITY: to perform Base Test Case
+            IMPLEMENTATION [METHOD]: runTest
+        CAPABILITY: to initialize Base Test Case
+            INPUT: "test Data"
+                IMPLEMENTATION [MAPPING]: testData
+                    CONTAINS: int
+                    CONTAINS: TestData
+            INPUT [OPT "NONE"]: "test Index"
+                IMPLEMENTATION [Optional]: testIndex
+            IMPLEMENTATION [METHOD]: __init__
+        CAPABILITY: to evaluate test result against expected output
+            INPUT: "actual"
+                IMPLEMENTATION [Any]: actual
+            IMPLEMENTATION [METHOD]: evaluate
+        CAPABILITY: to describe test case for display
+            OUTPUT: "result"
+            IMPLEMENTATION [METHOD]: shortDescription
+            CONTRACT
+                WHEN [PRE "self test Data and self test Index in self test Data"]: ESCAPE [DONE]
+    END: PART // Base Test Case
+
+    CAPABILITY: to run the test modules
+        INPUT: "list of test modules to run"
+            IMPLEMENTATION [Iterable]: test_modules
+        INPUT: "refresh expected test data indication"
+            IMPLEMENTATION [bool]: isRefreshExpectedTestData
+        OUTPUT: "result"
+            IMPLEMENTATION [GROUPING]: Result
+                CONTAINS: bool
+                CONTAINS: int
+        IMPLEMENTATION [METHOD]: runTestModules
+        CONTRACT
+            WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+    END: CAPABILITY // to run the test modules
+    CAPABILITY: to perform Unit Test
+        INPUT: "test Type Or Batch"
+            IMPLEMENTATION [Any]: testTypeOrBatch
+        INPUT [OPT "NONE"]: "test Ids"
+            IMPLEMENTATION [Optional]: testIds
+        INPUT [OPT "FALSE"]: "is Refresh Expected Test Data"
+            IMPLEMENTATION [bool]: isRefreshExpectedTestData
+        OUTPUT: "result"
+            IMPLEMENTATION [GROUPING]: Result
+                CONTAINS: bool
+                CONTAINS: int
+        IMPLEMENTATION [METHOD]: test
+    END: CAPABILITY // to perform Unit Test
+    CAPABILITY: to obtain the list of test modules to run
+        INPUT [STATE]: "command line arguments"
+            IMPLEMENTATION [Optional]: globalsDict
+        INPUT [OPT "NONE"]: "argv"
+            IMPLEMENTATION [Optional]: argv
+        OUTPUT: "result"
+            IMPLEMENTATION [GROUPING]: Result
+                CONTAINS: ORDERED
+                CONTAINS: bool
+        IMPLEMENTATION [METHOD]: getTestModules
+        CONTRACT
+            WHEN [PRE "Cannot specify both _ ALL_ and test modules"]: ERROR [ERROR]
+            WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+    END: CAPABILITY // to obtain the list of test modules to run
+END: PRODUCT // Testing Package
+

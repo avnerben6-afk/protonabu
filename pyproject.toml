@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "protonabu"
+version = "1.0.0"
+description = "Lightweight, language-agnostic fact parser and schema framework for Nabu"
+readme = "README.md"
+authors = [
+    { name = "Avner Ben" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.10"
+keywords = ["nabu", "design", "facts", "parser", "schema"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Compilers",
+]
+
+[project.optional-dependencies]
+pdf = [
+    "weasyprint>=54.0",
+]
+dev = [
+    "pytest>=7.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"protonabu" = ["*.nabu", "addendum.nabu"]
+"protonabu.adapter" = ["*.nabu", "addendum.nabu"]
+"protonabu.demoApp" = ["*.facts", "*.css", "schema.facts", "addendum.nabu", "example/*.facts"]
+"protonabu.testing" = ["*.nabu", "addendum.nabu"]
+"protonabu.util" = ["*.nabu", "addendum.nabu"]

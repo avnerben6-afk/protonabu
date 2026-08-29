@@ -1,0 +1,9 @@
+@startebnf
+
+fact-snippet = composite-fact, {newline, composite-fact};
+
+composite-fact = fact, {newline, (*bigger*) indent, composite-fact};
+
+fact = sentence;
+
+@endebnf

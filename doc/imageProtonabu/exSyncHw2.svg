@@ -1,0 +1,112 @@
+<svg height="627" width="298" name="" xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+            <path d="M0 0 L10 5 L0 10 L3 5 Z" style="stroke:Red;fill:Red;stroke-width:1" />
+        </marker>
+    </defs>
+       <line x1="10" y1="61" x2="40" y2="61" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="42" y="66" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to synchronize the Hardware</text>
+<polyline points="44,67 44,84 46,86 44,86" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="86" x2="74" y2="86" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="89" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">synchronization disabled</text>
+<line x1="14" y1="86" x2="44" y2="86" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<polyline points="25,84 32,96 42,80 46,77 41,80 32,90 25,84" stroke="Green" stroke-width="1" stroke-dasharray="none"  fill="Green" />
+<polyline points="46,86 44,88 44,108 46,110 44,110" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="110" x2="74" y2="110" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="76" y="114" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to set the current time</text>
+<polyline points="46,110 44,112 44,132 46,134 44,134" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="134" x2="74" y2="134" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="137" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">less than a second from last poll</text>
+<line x1="14" y1="134" x2="44" y2="134" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<polyline points="25,132 32,144 42,128 46,125 41,128 32,138 25,132" stroke="Green" stroke-width="1" stroke-dasharray="none"  fill="Green" />
+<polyline points="46,134 44,136 44,156 46,158 44,158" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="158" x2="74" y2="158" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="161" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">synchronization disabled</text>
+<line x1="14" y1="158" x2="44" y2="158" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<polyline points="25,156 32,168 42,152 46,149 41,152 32,162 25,156" stroke="Green" stroke-width="1" stroke-dasharray="none"  fill="Green" />
+<polyline points="46,158 44,160 44,180 46,182 44,182" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="182" x2="74" y2="182" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="76" y="186" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to remember last poll time</text>
+<polyline points="46,182 44,184 44,204 46,206 44,206" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="206" x2="74" y2="206" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="209" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">synchronization disabled</text>
+<line x1="14" y1="206" x2="44" y2="206" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<polyline points="25,204 32,216 42,200 46,197 41,200 32,210 25,204" stroke="Green" stroke-width="1" stroke-dasharray="none"  fill="Green" />
+<polyline points="46,206 44,208 44,228 46,230 44,230" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="230" x2="74" y2="230" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="76" y="234" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to read the hw counter</text>
+<polyline points="46,230 44,232 44,252 46,254 44,254" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="254" x2="74" y2="254" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="257" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">read failed</text>
+<line x1="14" y1="254" x2="44" y2="254" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<circle cx="49" cy="248" r="3" stroke="SlateBlue" stroke-width="1" fill="none" />
+<circle cx="49" cy="261" r="3" stroke="SlateBlue" stroke-width="1" fill="none" />
+<polyline points="49,250 19,263 46,248 49,250" stroke="SlateBlue" stroke-width="1" stroke-dasharray="none"  fill="SlateBlue" />
+<polyline points="49,258 19,245 46,260 49,258" stroke="SlateBlue" stroke-width="1" stroke-dasharray="none"  fill="SlateBlue" />
+<circle cx="38" cy="254" r="3" stroke="SlateBlue" stroke-width="1" fill="Black" />
+<polyline points="46,254 44,256 44,300 46,302 44,302" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="302" x2="74" y2="302" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="305" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">hw counter not progressed</text>
+<line x1="14" y1="302" x2="44" y2="302" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<polyline points="25,300 32,312 42,296 46,293 41,296 32,306 25,300" stroke="Green" stroke-width="1" stroke-dasharray="none"  fill="Green" />
+<polyline points="46,302 44,304 44,324 46,326 44,326" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="326" x2="74" y2="326" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="329" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">Invalid counter</text>
+<line x1="14" y1="326" x2="44" y2="326" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<circle cx="49" cy="320" r="3" stroke="SlateBlue" stroke-width="1" fill="none" />
+<circle cx="49" cy="333" r="3" stroke="SlateBlue" stroke-width="1" fill="none" />
+<polyline points="49,322 19,335 46,320 49,322" stroke="SlateBlue" stroke-width="1" stroke-dasharray="none"  fill="SlateBlue" />
+<polyline points="49,330 19,317 46,332 49,330" stroke="SlateBlue" stroke-width="1" stroke-dasharray="none"  fill="SlateBlue" />
+<circle cx="38" cy="326" r="3" stroke="SlateBlue" stroke-width="1" fill="Black" />
+<polyline points="46,326 44,328 44,372 46,374 44,374" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="374" x2="74" y2="374" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="377" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">synchronization disabled</text>
+<line x1="14" y1="374" x2="44" y2="374" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<polyline points="25,372 32,384 42,368 46,365 41,368 32,378 25,372" stroke="Green" stroke-width="1" stroke-dasharray="none"  fill="Green" />
+<polyline points="46,374 44,376 44,396 46,398 44,398" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="398" x2="74" y2="398" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="76" y="402" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to remember the last hw counter</text>
+<polyline points="46,398 44,400 44,420 46,422 44,422" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="422" x2="74" y2="422" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="425" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">synchronization disabled</text>
+<line x1="14" y1="422" x2="44" y2="422" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<polyline points="25,420 32,432 42,416 46,413 41,416 32,426 25,420" stroke="Green" stroke-width="1" stroke-dasharray="none"  fill="Green" />
+<polyline points="46,422 44,424 44,444 46,446 44,446" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="446" x2="74" y2="446" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="76" y="450" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to read hw time</text>
+<polyline points="46,446 44,448 44,468 46,470 44,470" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="470" x2="74" y2="470" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="473" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">Read failed</text>
+<line x1="14" y1="470" x2="44" y2="470" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<circle cx="49" cy="464" r="3" stroke="SlateBlue" stroke-width="1" fill="none" />
+<circle cx="49" cy="477" r="3" stroke="SlateBlue" stroke-width="1" fill="none" />
+<polyline points="49,466 19,479 46,464 49,466" stroke="SlateBlue" stroke-width="1" stroke-dasharray="none"  fill="SlateBlue" />
+<polyline points="49,474 19,461 46,476 49,474" stroke="SlateBlue" stroke-width="1" stroke-dasharray="none"  fill="SlateBlue" />
+<circle cx="38" cy="470" r="3" stroke="SlateBlue" stroke-width="1" fill="Black" />
+<polyline points="46,470 44,472 44,540 46,542 44,542" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="542" x2="74" y2="542" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="545" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">Times match</text>
+<line x1="14" y1="542" x2="44" y2="542" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<polyline points="25,540 32,552 42,536 46,533 41,536 32,546 25,540" stroke="Green" stroke-width="1" stroke-dasharray="none"  fill="Green" />
+<polyline points="46,542 44,544 44,564 46,566 44,566" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="566" x2="74" y2="566" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<text x="76" y="569" font-size="11px" font-family="Arial" font-weight="normal" font-style="italic" fill="Black">synchronization disabled</text>
+<line x1="14" y1="566" x2="44" y2="566" stroke="Red" stroke-width="2" stroke-dasharray="4,3"  />
+<polyline points="25,564 32,576 42,560 46,557 41,560 32,570 25,564" stroke="Green" stroke-width="1" stroke-dasharray="none"  fill="Green" />
+<polyline points="46,566 44,568 44,588 46,590 44,590" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="44" y1="590" x2="74" y2="590" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="76" y="594" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to update time in the hw</text>
+<polyline points="78,259 78,276 80,278 78,278" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="78" y1="278" x2="108" y2="278" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="110" y="282" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to disable synchronization</text>
+<polyline points="78,331 78,348 80,350 78,350" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="78" y1="350" x2="108" y2="350" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="110" y="354" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to log error</text>
+<polyline points="78,475 78,492 80,494 78,494" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="78" y1="494" x2="108" y2="494" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="110" y="498" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to log error</text>
+<polyline points="80,494 78,496 78,516 80,518 78,518" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="78" y1="518" x2="108" y2="518" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="110" y="522" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to disable synchronization</text>
+</svg>

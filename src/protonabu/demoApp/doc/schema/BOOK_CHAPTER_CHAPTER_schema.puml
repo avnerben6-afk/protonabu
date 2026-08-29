@@ -1,0 +1,3 @@
+@startebnf
+CHAPTER = "quotedName" , { DESCRIPTOR | PREFIX | SECTION } ;
+@endebnf

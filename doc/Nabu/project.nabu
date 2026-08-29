@@ -1,0 +1,330 @@
+PROJECT: Protonabu Usage
+    ROADMAP
+        INCLUDED PRODUCT: Protonabu Usage Guide
+        COMBINED MILESTONE [MAJOR]: My Product
+            MILESTONE: My Product - Under Construction
+            MILESTONE: My Product - Tested
+
+PRODUCT: Protonabu Usage Guide
+    ID
+        PROPERTY ["PURPOSE"]: "to specify and guide the operative procedure for creating my Protonabu-powered DSL"
+        PROPERTY ["AUTHOR"]: "Avner Ben"
+            BULLET ["CREATED"]: "07-Mar-2026"
+        PROPERTY ["AI"]: "Antigravity"
+            BULLET ["GENERATED"]: "07-Mar-2026"
+
+    PART: Protonabu
+        CAPABILITY: to retrieve registered fact builder
+            ID
+                PROPERTY ["EXAMPLE"]: "dispatcher.loadHandlers"
+            INPUT: "Fact label"
+            OUTPUT: "Fact builder handler"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to query the parsing design path
+            ID
+                PROPERTY ["EXAMPLE"]: "fact.designPath[-1][1]"
+            INPUT: "Design Path"
+            OUTPUT: "Composite Fact"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to build fact
+            ID
+                PROPERTY ["EXAMPLE"]: "parsePage(self, fact)"
+            INPUT: "Tokenized Fact"
+            OUTPUT: "Composite Fact"
+            OUTPUT: "Design Path -- augmented"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to parse tokenized fact
+            INPUT: "tokenized AST"
+            OUTPUT: "Design Fact"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to parse the facts in My App snippet
+            DEFINITIVE [PART]
+            INPUT: "My App snippet"
+            OUTPUT: "tokenized AST"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to build My Fact-base
+            ID
+                PROPERTY ["EXAMPLE"]: "SiteParser.parse()"
+            INPUT: "My App snippet"
+            INPUT: "My DSL Schema"
+            OUTPUT: "My DOM class definitions"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to compile My App snippet
+            INPUT: "My App snippet"
+            OUTPUT: "My App design fact-base"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to load schema
+            ID
+                PROPERTY ["EXAMPLE"]: "ProtonabuSchema(schema_path)"
+            INPUT: "My DSL Schema snippet"
+            OUTPUT: "Protonabu Schema AST"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to generate schema report
+            INPUT: "My DSL Schema"
+            OUTPUT: "Schema Specification report"
+            IMPLEMENTATION [BLOCK]
+    END: PART // Protonabu
+
+    PART: Developer
+        CAPABILITY: to design and build My user interface
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to design and build my other functionality
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to document my Fact Tokenizer
+            INPUT: "Fact tokenizer spec"
+            OUTPUT [STATE]: "Fact Argument tokenizer -- documented"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to specify my token type
+            INPUT: "Token type name"
+            OUTPUT: "My DSL Tokenizer library"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to define my Fact parameter modifier
+            ID
+                PROPERTY ["EXAMPLE"]: "KEYWORD [quotedName]"
+            INPUT: "Fact spec"
+            OUTPUT: "Fact argument modifier token type"
+            OUTPUT: "Token optionality"
+            OUTPUT [STATE]: "Fact spec -- flexible-parametrized"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to define my Fact label modifier
+            ID
+                PROPERTY ["EXAMPLE"]: "quotedText?"
+            INPUT: "Fact spec"
+            OUTPUT: "Label modifier token name"
+            OUTPUT: "Token optionality"
+            OUTPUT [STATE]: "Fact spec -- flexible"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to position Fact in the schema hierarchy
+            INPUT: "Fact spec"
+            OUTPUT [STATE]: "Fact -- positioned"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to document my Fact
+            INPUT: "Fact spec"
+            OUTPUT [STATE]: "Fact -- dpocumented"
+            OUTPUT: "Schema fact -- commented"
+            OUTPUT [STATE]: "Fact spec -- documented"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to cut repeating Fact hierarchy in my Schema
+            ID
+                PROPERTY ["EXAMPLE"]: "__DITTO__ under CONTINUATION"
+            INPUT [STATE]: "My DSL Schema Snippet -- structured"
+            OUTPUT [STATE]: "My DSL Schema Snippet -- recursion bounds resolved"
+            OUTPUT: "Ditto schema reference"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to define my Fact
+            ID
+                PROPERTY ["EXAMPLE"]: "PAGE: quotedName"
+            INPUT: "Fact name"
+            OUTPUT: "Fact label"
+            OUTPUT [STATE]: "Fact spec -- labeled"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to code my composite token-type interpreter
+            INPUT: "Tokenizer spec"
+            OUTPUT: "My DSL Tokenizer library"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to specify my Fact
+            ID
+                PROPERTY ["EXAMPLE"]: "PAGE: quotedName"
+            INPUT: "Fact spec"
+            OUTPUT: "Fact argument token type"
+            OUTPUT: "Token optionality"
+            OUTPUT [STATE]: "Fact spec -- parametrized"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to add Fact to My DSL vocabulary
+            ID
+                PROPERTY ["EXAMPLE"]: "Editing schema.facts"
+            INPUT: "Fact spec"
+            INPUT: "My DSL Schema snippet"
+            OUTPUT: "Fact spec -- registered"
+            OUTPUT: "My DSL Schema snippet -- edited"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to state my Fact
+            ID
+                PROPERTY ["EXAMPLE"]: "PAGE: Introduction"
+            INPUT: "Design state"
+            OUTPUT: "Fact label"
+            OUTPUT: "Fact label modifier"
+            OUTPUT: "Fact argument"
+            OUTPUT: "Fact argument modifier"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to Use My Fact-base
+            ID
+                PROPERTY ["DESCRIPTION"]: "My application, running, as configured by my snippet"
+                PROPERTY ["EXAMPLE"]: "Generated HTML site"
+            INPUT: "My DOM class definitions"
+            OUTPUT: "Generated artifacts"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to use My App
+            INPUT: "My DSL parser"
+            INPUT: "My App snippet"
+            INPUT: "My DOM class definitions"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to design My Domain Object Model
+            ID
+                PROPERTY ["EXAMPLE"]: "class Book / class Page in siteModel.py"
+            INPUT: "Protonabu Schema AST"
+            OUTPUT: "My DOM class definitions"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to modify Fact in My DSL Vocabulary
+            INPUT: "Fact spec"
+            OUTPUT: "Fact spec -- modified"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to edit My DSL Schema
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to define My DSL Schema
+            DEFINITIVE [PART]
+            ID
+                PROPERTY ["PURPOSE"]: "To define the vocabulary to be used in My application domain"
+                PROPERTY ["EXAMPLE"]: "schema.facts"
+            INPUT: "Business requirements"
+            OUTPUT: "My DSL Schema Snippet"
+            OUTPUT: "My DSL parser -- stubs"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to position Fact in my design
+            ID
+                PROPERTY ["EXAMPLE"]: "SECTION under CHAPTER"
+            INPUT: "Fact"
+            INPUT: "Parent Fact"
+            OUTPUT: "Fact -- positioned"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to add Fact to My design
+            INPUT: "Fact spec"
+            OUTPUT: "Fact -- added"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to modify my Fact
+            INPUT: "Fact"
+            OUTPUT: "Fact -- modified"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to edit My App snippet
+            ID
+                PROPERTY ["EXAMPLE"]: "Editing demo_site.facts"
+            INPUT: "My App snippet"
+            OUTPUT: "My App snippet -- edited"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to prepare My App snippet
+            ID
+                PROPERTY ["EXAMPLE"]: "demo_site.facts"
+            INPUT: "Domain design"
+            OUTPUT: "My App snippet"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to build the rest of My App
+            INPUT: "My DSL Schema snippet"
+            INPUT: "My DSL parser -- stubs"
+            OUTPUT: "My DSL parser -- implemented"
+            OUTPUT: "My App snippet"
+            OUTPUT: "My DOM class definitions"
+            IMPLEMENTATION [BLOCK]
+        CAPABILITY: to author my Protonabu-powered App
+            DEFINITIVE [PRODUCT]
+            INPUT: "Business requirements"
+            OUTPUT: "My App"
+            IMPLEMENTATION [BLOCK]
+    END: PART // Developer
+
+    USE CASE: to author my Protonabu-powered App
+        TITLE: Authoring my Protonabu-powered App
+        USING: "Business requirements"
+        GIVING: "Protonabu schema snippet"
+        GIVING: "My App snippet"
+        REQUIRES: to define My DSL Schema
+        REQUIRES: to build the rest of My App
+        REQUIRES: to use My App
+
+    USE CASE: to define My DSL Schema
+        TITLE: Defining My DSL Schema
+        ID
+            PROPERTY ["PURPOSE"]: "to reduce My problem domain to Labeled Facts"
+            PROPERTY ["METHOD"]: "editing snippet offline"
+        GIVING: "My DSL Schema Snippet"
+            REQUIRES: to edit My DSL Schema
+                REPEATED [UNTIL]: "DSL Schema is stable"
+                REQUIRES: to add Fact to My DSL vocabulary
+                    ID
+                        PROPERTY ["EXAMPLE"]: "Milestone status"
+                    OPTION: "Learning"
+                        CRITERION
+                    REQUIRES: to position Fact in the schema hierarchy
+                    REQUIRES: to define my Fact
+                        ID
+                            PROPERTY ["EXAMPLE"]: "STATUS"
+                    REQUIRES: to specify my Fact
+                        ID
+                            PROPERTY ["EXAMPLE"]: "uniqueEntityName"
+                        OPTION: "Fact is named"
+                        REQUIRES: to specify my token type
+                            OPTION: "New token type"
+                            GIVING [to add]: "My DSL Tokenizer library"
+                            REQUIRES: to document my Fact Tokenizer
+                        REQUIRES: to code my composite token-type interpreter
+                            OPTION: "Structured and not yet specified"
+                            GIVING [to add]: "My DSL Tokenizer library"
+                        REQUIRES: to define my Fact parameter modifier
+                            ID
+                                PROPERTY ["EXAMPLE"]: "assignedDeveloper"
+                            OPTION: "Fact parameter is flexible"
+                            REQUIRES: to specify my token type
+                                OPTION: "New token type"
+                    END: REQUIRES // to specify my Fact
+                    REQUIRES: to define my Fact label modifier
+                        ID
+                            PROPERTY ["EXAMPLE"]: "date?"
+                        OPTION: "Fact is flexible"
+                        REQUIRES: to specify my token type
+                            OPTION: "New token type"
+                    REQUIRES: to document my Fact
+                END: REQUIRES // to add Fact to My DSL vocabulary
+                REQUIRES: to modify Fact in My DSL Vocabulary
+                    OPTION: "Improving"
+                REQUIRES: to cut repeating Fact hierarchy in my Schema
+                    OPTION: "Stabilizing"
+        END: REQUIRES // to edit My DSL Schema
+        REQUIRES: to load schema
+        REQUIRES: to generate schema report
+        REQUIRES: to design My Domain Object Model
+    END: USE CASE // to define My DSL Schema
+
+    USE CASE: to build the rest of My App
+        TITLE: Building My App
+            REQUIRES: to prepare My App snippet
+                REQUIRES: to edit My App snippet
+                    REPEATED [UNTIL]: "The DSL spec is stable"
+                    REQUIRES: to add Fact to My design
+                        OPTION: "Learning"
+                            CRITERION
+                        REQUIRES: to position Fact in my design
+                        REQUIRES: to state my Fact
+                    REQUIRES: to modify my Fact
+                        OPTION: "Improving"
+                REQUIRES: to compile My App snippet
+        END: REQUIRES // to prepare My App snippet
+        REQUIRES: to design and build my other functionality
+        REQUIRES: to design and build My user interface
+    END: USE CASE // to build the rest of My App
+
+    USE CASE: to use My App
+        TITLE: Using My App
+        REQUIRES: to load schema
+        REQUIRES: to build My Fact-base
+            REQUIRES: to parse the facts in My App snippet
+                REQUIRES: to parse tokenized fact
+                    SCANNING: "Abstract Syntax tree"
+                    REQUIRES: to retrieve registered fact builder
+                    REQUIRES: to build fact
+                        USING: "Tokenized Fact"
+                        GIVING: "Composite Fact"
+                        GIVING: "Fact Path"
+                        REQUIRES: to query the parsing design path
+        REQUIRES: to Use My Fact-base
+    END: USE CASE // to use My App
+
+    ROADMAP
+        ASSIGNED DEVELOPER: Me
+        MILESTONE: My Product - Under Construction
+            SCHEDULED USE CASE: to author my Protonabu-powered App
+            SCHEDULED USE CASE: to define My DSL Schema
+            SCHEDULED USE CASE: to build  the rest of My App
+        MILESTONE: My Product - Tested
+            SCHEDULED USE CASE: to use My App
+
+END: PRODUCT // Protonabu Usage Guide
+

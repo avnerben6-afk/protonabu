@@ -1,0 +1,39 @@
+PRODUCT: Snippet Adapter Package
+    IMPLEMENTATION [PACKAGE]: SnippetAdapterPackage
+        NAMESPACE: SnippetAdapterPackage
+
+    PART: Fact Snippet Adapter
+        STEREOTYPE: ABSTRACT
+        IMPLEMENTATION: FactSnippetAdapter
+        CAPABILITY: to import facts thru <SUBSTITUTE Fact> Snippet Adapter
+            INPUT: "foreign format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "native format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: NativeFormatSnippet
+            IMPLEMENTATION [METHOD]: adaptInput
+        CAPABILITY: to export facts thru <SUBSTITUTE Fact> Snippet Adapter
+            INPUT: "native format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "foreign format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: ForeignFormatSnippet
+            IMPLEMENTATION [METHOD]: adaptOutput
+    END: PART // Fact Snippet Adapter
+
+    PART: XML Snippet Adapter
+        IMPLEMENTATION: XmlSnippetAdapter
+        CAPABILITY: to import facts thru <XML> Snippet Adapter
+            INPUT: "XML snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "Native format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: NativeFormatSnippet
+            IMPLEMENTATION [METHOD]: adaptInput
+        CAPABILITY: to export facts thru <XML> Snippet Adapter
+            INPUT: "Native format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "XML format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: XMLFormatSnippet
+            IMPLEMENTATION [METHOD]: adaptOutput
+    END: PART // XML Snippet Adapter
+
+END: PRODUCT // Snippet Adapter Package
+

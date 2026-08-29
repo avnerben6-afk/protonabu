@@ -1,0 +1,5 @@
+@startebnf
+
+labeled-fact = label, ['[', label-modifier, ']'], [':', argument, ['[', argument-modifier, ']']];
+
+@endebnf

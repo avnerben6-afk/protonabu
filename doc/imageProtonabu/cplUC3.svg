@@ -1,0 +1,2070 @@
+<svg height="278" width="418" name="" xmlns="http://www.w3.org/2000/svg">
+
+<style>
+    .collapsible-trigger { cursor: pointer; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; transition: fill 0.2s; }
+    .collapsible-trigger:hover { fill: Red; font-weight: bold; }
+    .highlighted-node { fill: Maroon !important; font-weight: bold !important; font-style: normal !important; }
+    .highlighted-bg { fill: LemonChiffon !important; }
+</style>
+<script>
+//<![CDATA[
+const NABU_RULES = {
+    "prefixReplacement": {
+        "global": {
+            "arg:": { "replacement": "argument:" },
+            "esc:": { "replacement": "escape:" },
+            "sink:": { "replacement": "sink:" },
+            "source:": { "replacement": "source:" },
+            "opt\\b": { "replacement": "optionally" },
+            "rpt\\b": { "replacement": "repeated" },
+            "iter\\b": { "replacement": "iterative" },
+            "alt\\s*#?\\s*(\\d+)\\s*/\\s*(\\d+)": { "replacement": "alternative number $1 out of $2" },
+            "\\*\\s*(\\d+)": { "replacement": "occurs $1 times" },
+            "\\*": { "replacement": "occurs multiple times" }
+        }
+    },
+    "nameAdornment": {
+        "Requirement Ladder": {
+            "dashedArc": {
+                "prefix": "returns ",
+                "postfix": "",
+                "regex": "^(?!.*esc:)(?!.*escape)(?!.*sink:)(?!.*source:)(.*)$"
+            },
+            "requiresNonGraphviz": {
+                "regex": "^to\\s+",
+                "replacement": "requires to "
+            },
+            "requiresGraphvizEdge": {
+                "regex": "^(?!.*requires)(?!.*to\\s+)(?!.*escape)(.*)$",
+                "replacement": "requires $1"
+            },
+            "escapeArc": {
+                "prefix": "escape ",
+                "postfix": ""
+            },
+            "foreignTraversal": {
+                "regex": "to\\s*\\([^\\)]*\\)",
+                "replacement": "Foreign traversal hidden"
+            }
+        },
+        "Requirement Tree": {
+            "requiresNonGraphviz": {
+                "regex": "^to\\s+",
+                "replacement": "requires to "
+            },
+            "requiresGraphvizEdge": {
+                "regex": "^(?!.*requires)(?!.*to\\s+)(?!.*escape)(.*)$",
+                "replacement": "requires $1"
+            },
+            "backwardArc": {
+                "prefix": "back and requires ",
+                "postfix": ""
+            },
+            "escapeArc": {
+                "prefix": "escape ",
+                "postfix": ""
+            },
+            "foreignTraversal": {
+                "regex": "to\\s*\\([^\\)]*\\)",
+                "replacement": "Foreign traversal hidden"
+            }
+        },
+        "Breakdown Diagram": {
+            "requiresNonGraphviz": {
+                "regex": "^to\\s+",
+                "replacement": "requires to "
+            }
+        },
+        "Coupling Chart": {
+            "rightCoupling": {
+                "prefix": "is coupled by ",
+                "postfix": ", with:"
+            },
+            "leftCoupling": {
+                "prefix": "requires ",
+                "postfix": ""
+            },
+            "ellipsis": {
+                "regex": "(?:\\(|\\s|^)\\.\\.\\.(?:\\)|\\s|$)",
+                "replacement": "No couplings inside"
+            }
+        }
+    }
+};
+
+/**
+ * Module: Vectorgraphic Module
+ *  - Author: Avner Ben
+ *      - Created: 15-May-2026
+ *  - Generator: Antigravity (Gemini 3.1 Flash)
+ *      - Generated: 15-May-2026
+ *  - Generator: Antigravity (Claude Opus 4.5)
+ *      - Improved: 14-June-2026
+ *  - Purpose: Unknown
+ */
+
+/**
+ * to toggle Visual Collapsible Group
+ * - Input: Trigger element
+ * - Input: Is animating flag
+ */
+function toggle(el, isAnimating) {
+    var triggerGroup = el.closest('g');
+    var childrenGroups = [];
+
+    // [Rpt]: to climb DOM tree until we locate the adjacent content groups
+    while (triggerGroup && triggerGroup.tagName.toLowerCase() === 'g') {
+        var sibling = triggerGroup.nextElementSibling;
+        var foundAny = false;
+        // [Rpt]: to check siblings for 'g' tags
+        while (sibling) {
+            // [Opt]: to handle tag Name of sibling equals = g
+            if (sibling.tagName.toLowerCase() === 'g') {
+                childrenGroups.push(sibling);
+                foundAny = true;
+            }
+            sibling = sibling.nextElementSibling;
+        }
+        // [Esc]: to stop climbing if we found sibling groups
+        if (foundAny) break;
+        // to climb out if trapped in an inner wrapper
+        triggerGroup = triggerGroup.parentElement;
+        // [Esc]: to stop at major structural graph IDs
+        if (triggerGroup && triggerGroup.id && triggerGroup.id.indexOf('graph') !== -1) {
+            break;
+        }
+    }
+
+    var hasChildrenGroup = (childrenGroups.length > 0);
+    var isHiding = false;
+
+    // [Alt "(hasChildrenGroup)"]: to apply when hasChildrenGroup
+    if (hasChildrenGroup) {
+        isHiding = (childrenGroups[0].style.display !== 'none');
+        // [Alt "not (hasChildrenGroup)"]: to apply when not (hasChildrenGroup
+    } else {
+        isHiding = (el.textContent === '-');
+    }
+
+    var newDisplay = isHiding ? 'none' : 'inline';
+    var newText = isHiding ? '+' : '-';
+
+    // [Opt]: to apply when hasChildrenGroup)
+    if (hasChildrenGroup) {
+        childrenGroups.forEach(function (group) {
+            // [Opt]: to handle is Hiding
+            if (isHiding) {
+                var nestedTriggers = group.querySelectorAll('.collapsible-trigger');
+                nestedTriggers.forEach(function (trigger) {
+                    // [Opt]: to handle text Content of trigger equals = -
+                    if (trigger.textContent === '-') {
+                        toggle(trigger, isAnimating);
+                    }
+                });
+            }
+            group.style.display = newDisplay;
+        });
+    }
+
+    el.textContent = newText;
+
+    var targetsStr = el.getAttribute('data-targets');
+    // [Opt]: to apply when targetsStr) {
+    if (targetsStr) {
+        var targetIds = targetsStr.split(',');
+        targetIds.forEach(function (id) {
+            var target = document.getElementById(id);
+            // [Opt]: to handle target
+            if (target) {
+                var count = parseInt(target.getAttribute('data-ref-count') || '1');
+                count += (isHiding ? -1 : 1);
+                target.setAttribute('data-ref-count', count);
+
+                // [Alt]: to handle !is Animating !is Hiding
+                if (!isAnimating && !isHiding) {
+                    target.style.display = (count > 0) ? 'inline' : 'none';
+                    // [Alt]: to handle !is Animating is Hiding
+                } else if (!isAnimating && isHiding) {
+                    target.style.display = (count > 0) ? 'inline' : 'none';
+                }
+            }
+        });
+    }
+}
+
+var animationInterval = 4000;
+var animationTimer = null;
+var animatedNodes = [];
+var animatedNodeData = []; // Pre-extracted node text and metadata
+var currentAnimationIndex = -1;
+var currentAnimationSequenceId = 0;
+var isAnimationActive = false;
+var baselineDisplayStates = []; // to store baseline visibility
+
+// [Scan]: to speech-sequence guard state (robust platform-bug bypass)
+var nabuLatestSpeechSequenceId = -1;
+var nabuLatestSpeechToken = 0;
+var nabuAnimationBlocked = false;
+var nabuActiveSpeechUtterance = null;
+
+// [Scan]: to event listeners for Window SAPI cleanup have been intentionally disabled,
+// [Scan]: to as `cancel()` causes a fatal lockup on Windows 11 Chrome/Edge audio drivers.
+// [Scan]: to ensuring natural drain is required.
+
+// [Scan]: to ensure speech acts natively.
+document.addEventListener('change', function (e) {
+    // [Opt; Opt]: to handle target of e id of target of e equals = anim Speech !checked of target of e speech Synthesis of window | OPT; OPT=
+    if (e.target && e.target.id === 'animSpeech' && !e.target.checked) {
+        if (window.speechSynthesis) {
+            setTimeout(function () {
+                // [Opt]: to handle speaking of speech Synthesis of window pending of speech Synthesis of window
+                if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+                    // [Guard]: to do RENAME ME vectorGraphic 126 0000
+                    // [Esc Warning]: "err"
+                    try { window.speechSynthesis.cancel(); } catch (err) { }
+                }
+            }, 100);
+        }
+    }
+});
+
+/**
+ * to highlight Visual Node
+ * - Input: Node group element
+ * - Input: Highlight flag
+ */
+function highlightNode(nodeGroup, highlight) {
+    // [Esc]: !node Group
+    if (!nodeGroup) return;
+
+    var targetTexts = [];
+    var trigger = Array.from(nodeGroup.querySelectorAll('.collapsible-trigger')).find(function (t) {
+        return t.closest('.collapsible-group') === nodeGroup;
+    });
+    var isGraphviz = nodeGroup.classList.contains('node') || nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.node') !== null || nodeGroup.querySelector('.edge') !== null;
+
+    function markFallbackShape(activate) {
+        var shape = nodeGroup.querySelector('rect, polygon, polyline, path, circle, ellipse');
+        // [Esc]: to handle !shape
+        if (!shape) return;
+        // [Alt]: to handle activate
+        if (activate) {
+            if (!shape.hasAttribute('data-orig-stroke')) {
+                shape.setAttribute('data-orig-stroke', shape.getAttribute('stroke') || 'none');
+                shape.setAttribute('data-orig-stroke-width', shape.getAttribute('stroke-width') || '');
+            }
+            shape.setAttribute('stroke', 'Magenta');
+            shape.setAttribute('stroke-width', '3');
+            // [Alt]: to handle not activate
+        } else {
+            // [Alt]: to handle has Attribute of shape data-orig-stroke
+            if (shape.hasAttribute('data-orig-stroke')) {
+                var os = shape.getAttribute('data-orig-stroke');
+                if (os && os !== 'none') shape.setAttribute('stroke', os);
+                else shape.removeAttribute('stroke');
+                shape.removeAttribute('data-orig-stroke');
+                // [Alt]: to handle not has Attribute of shape data-orig-stroke
+            } else {
+                shape.removeAttribute('stroke');
+            }
+            // [Alt]: to handle has Attribute of shape data-orig-stroke-width
+            if (shape.hasAttribute('data-orig-stroke-width')) {
+                var ow = shape.getAttribute('data-orig-stroke-width');
+                if (ow) shape.setAttribute('stroke-width', ow);
+                else shape.removeAttribute('stroke-width');
+                shape.removeAttribute('data-orig-stroke-width');
+                // [Alt]: to handle not has Attribute of shape data-orig-stroke-width
+            } else {
+                shape.removeAttribute('stroke-width');
+            }
+        }
+    }
+
+    // [Esc]: is Graphviz
+    if (isGraphviz) {
+        // [Scan]: to support for Graphviz SVG structures (nested <g class="node"> contains multiple <text> tags)
+        targetTexts = Array.from(nodeGroup.querySelectorAll('text')).filter(function (t) {
+            return !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden');
+        });
+        // [Alt "not (isGraphviz)"]: to apply when not (isGraphviz
+    } else {
+        var directTexts = Array.from(nodeGroup.querySelectorAll('text')).filter(function (t) {
+            return t.closest('.collapsible-group') === nodeGroup && !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden') && !t.closest('.descriptor-cells');
+        });
+
+        targetTexts = targetTexts.concat(directTexts);
+
+        var isArc = isGraphviz || nodeGroup.querySelector('line') || nodeGroup.querySelector('path') || nodeGroup.querySelector('polygon') || nodeGroup.querySelector('polyline');
+
+        // [Scan]: to only absorb securely adjacent preceding singleton text/descriptors
+        var prev = nodeGroup.previousElementSibling;
+        // [Opt]: to handle length of target Texts equals = 0 prev
+        if (targetTexts.length === 0 && prev) {
+            // [Alt]: to handle tag Name of prev equals = g tag Name of prev equals = G contains of class List of prev descriptor-cells
+            if ((prev.tagName === 'g' || prev.tagName === 'G') && prev.classList.contains('descriptor-cells')) {
+                var texts = prev.querySelectorAll('text');
+                if (texts.length > 0) targetTexts = targetTexts.concat(Array.from(texts));
+                // [Alt]: to handle tag Name of prev equals = text tag Name of prev equals = TEXT
+            } else if (prev.tagName === 'text' || prev.tagName === 'TEXT') {
+                targetTexts.push(prev);
+            }
+            // [Opt; Rpt]: to handle length of target Texts equals = 0 is Arc prev tag Name of prev ! equals g tag Name of prev ! equals G | OPT; RPT=
+            if (targetTexts.length === 0 && isArc) {
+                while (prev && prev.tagName !== 'g' && prev.tagName !== 'G') {
+                    // [Opt]: to handle tag Name of prev equals = text tag Name of prev equals = TEXT
+                    if (prev.tagName === 'text' || prev.tagName === 'TEXT') {
+                        targetTexts.unshift(prev);
+                    }
+                    prev = prev.previousElementSibling;
+                }
+            }
+        }
+    }
+
+    // [Alt "(highlight)"]: to apply when highlight
+    if (highlight) {
+        // [Alt "(targetTexts.length > 0)"]: to apply when targetTexts present
+        if (targetTexts.length > 0) {
+            targetTexts.forEach(function (targetText) {
+                targetText.classList.add('highlighted-node');
+                targetText.style.fill = "Maroon";
+                if (!targetText.hasAttribute('data-orig-font-weight')) {
+                    targetText.setAttribute('data-orig-font-weight', targetText.getAttribute('font-weight') || '');
+                }
+                targetText.setAttribute("font-weight", "bold");
+                var bbox = targetText.getBBox();
+                if (bbox.width > 0 && bbox.height > 0) {
+                    var bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    bgRect.setAttribute("class", "highlight-bg");
+                    bgRect.setAttribute("x", bbox.x - 2);
+                    bgRect.setAttribute("y", bbox.y - 2);
+                    bgRect.setAttribute("width", bbox.width + 4);
+                    bgRect.setAttribute("height", bbox.height + 4);
+                    bgRect.setAttribute("fill", "lemonchiffon");
+                    bgRect.setAttribute("rx", "2");
+                    // [Scan]: to insert behind the text node
+                    targetText.parentNode.insertBefore(bgRect, targetText);
+                }
+            });
+
+            // [Opt]: to apply when targetTexts[0].scrollIntoView) {
+            if (targetTexts[0].scrollIntoView) {
+                var isArc = isGraphviz || nodeGroup.querySelector('line') || nodeGroup.querySelector('path') || nodeGroup.querySelector('polygon') || nodeGroup.querySelector('polyline');
+                var nodeToScroll = (isArc) ? targetTexts[targetTexts.length - 1] : targetTexts[0];
+                nodeToScroll.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            }
+            // [Alt "not (targetTexts.length > 0)"]: to apply when not (targetTexts present
+        } else {
+            // [Scan]: to apply graphical outline emphasis to native ellipsis/empty boxes that natively possess no text
+            var isEdge = isGraphviz && (nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.edge'));
+            if (!isEdge) {
+                markFallbackShape(true);
+            }
+        }
+        // [Opt]: to apply when isGraphviz && (nodeGroup.classList.contains('edge'
+        if (isGraphviz && (nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.edge'))) {
+            nodeGroup.querySelectorAll('path, polygon').forEach(function (p) {
+                if (!p.hasAttribute('data-orig-stroke')) {
+                    p.setAttribute('data-orig-stroke', p.getAttribute('stroke') || '');
+                }
+                if (!p.hasAttribute('data-orig-stroke-width')) {
+                    p.setAttribute('data-orig-stroke-width', p.getAttribute('stroke-width') || '');
+                }
+                p.setAttribute('stroke', 'Maroon');
+                p.setAttribute('stroke-width', '3');
+            });
+        }
+        // [Opt]: to highlight non-Graphviz wire chart arc elements (lines and polylines)
+        if (!isGraphviz) {
+            var arcElements = nodeGroup.querySelectorAll('line, polyline, path, polygon');
+            arcElements.forEach(function (el) {
+                // [Esc]: skip elements belonging to nested child collapsible groups
+                if (el.closest('.collapsible-group') !== nodeGroup) return;
+                var currentStroke = el.getAttribute('stroke') || '';
+                // [Esc]: skip eraser lines (White stroke) and shadow elements (Grey fill)
+                if (currentStroke === 'White' || currentStroke === 'Grey') return;
+                if (!el.hasAttribute('data-orig-stroke')) {
+                    el.setAttribute('data-orig-stroke', currentStroke);
+                }
+                if (!el.hasAttribute('data-orig-stroke-width')) {
+                    el.setAttribute('data-orig-stroke-width', el.getAttribute('stroke-width') || '');
+                }
+                el.setAttribute('stroke', 'Maroon');
+                el.setAttribute('stroke-width', '3');
+            });
+            // [Rpt]: to walk backwards through siblings to find source Wire Box title group
+            var prevSibling = nodeGroup.previousElementSibling;
+            while (prevSibling && prevSibling.classList && prevSibling.classList.contains('collapsible-group') && !prevSibling.querySelector(':scope > rect')) {
+                prevSibling = prevSibling.previousElementSibling;
+            }
+            if (prevSibling && prevSibling.classList && prevSibling.classList.contains('collapsible-group') && prevSibling.querySelector(':scope > rect')) {
+                var sourceRects = prevSibling.querySelectorAll(':scope > rect');
+                sourceRects.forEach(function (r) {
+                    var rs = r.getAttribute('stroke') || '';
+                    if (rs === 'Grey') return;
+                    if (!r.hasAttribute('data-orig-stroke-width')) {
+                        r.setAttribute('data-orig-stroke-width', r.getAttribute('stroke-width') || '');
+                    }
+                    r.setAttribute('stroke-width', '3');
+                });
+                // [Opt]: to highlight source Wire Box name text
+                var sourceTexts = Array.from(prevSibling.querySelectorAll('text')).filter(function (t) {
+                    return !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden');
+                });
+                sourceTexts.forEach(function (t) {
+                    if (!t.hasAttribute('data-orig-fill')) {
+                        t.setAttribute('data-orig-fill', t.getAttribute('fill') || t.style.fill || '');
+                    }
+                    if (!t.hasAttribute('data-orig-font-weight')) {
+                        t.setAttribute('data-orig-font-weight', t.getAttribute('font-weight') || '');
+                    }
+                    t.setAttribute('fill', 'Maroon');
+                    t.style.fill = 'Maroon';
+                });
+            }
+        }
+        // [Alt "not (highlight)"]: to apply when not (highlight
+    } else {
+        // [Alt]: to handle length of target Texts greater than 0
+        if (targetTexts.length > 0) {
+            targetTexts.forEach(function (targetText) {
+                targetText.classList.remove('highlighted-node');
+                targetText.style.fill = "";
+                if (targetText.hasAttribute('data-orig-font-weight')) {
+                    var ofw = targetText.getAttribute('data-orig-font-weight');
+                    if (ofw) targetText.setAttribute('font-weight', ofw);
+                    else targetText.removeAttribute('font-weight');
+                } else {
+                    targetText.removeAttribute("font-weight");
+                }
+
+                // [Scan]: to securely scrub ANY background highlight rectangles injected prior globally relative to this node
+                var pNode = targetText.parentNode;
+                if (pNode) {
+                    var bgs = pNode.querySelectorAll(':scope > .highlight-bg');
+                    bgs.forEach(function (bg) {
+                        try { bg.parentNode.removeChild(bg); } catch (e) { }
+                    });
+                }
+            });
+            // [Alt]: to handle not length of target Texts greater than 0
+        } else {
+            // [Alt]: to fallback highlight for nodes without text.
+            if (!highlight) {
+                var isEdge = isGraphviz && (nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.edge'));
+                // [Opt]: to handle !is Edge
+                if (!isEdge) {
+                    markFallbackShape(false);
+                }
+            }
+        }
+        // [Opt]: to handle is Graphviz contains of class List of node Group edge query Selector of node Group .edge
+        if (isGraphviz && (nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.edge'))) {
+            nodeGroup.querySelectorAll('path, polygon').forEach(function (p) {
+                // [Alt]: to handle has Attribute of p data-orig-stroke
+                if (p.hasAttribute('data-orig-stroke')) {
+                    var os = p.getAttribute('data-orig-stroke');
+                    if (os) p.setAttribute('stroke', os);
+                    else p.removeAttribute('stroke');
+                    p.removeAttribute('data-orig-stroke');
+                    // [Alt]: to handle not has Attribute of p data-orig-stroke
+                } else {
+                    p.removeAttribute('stroke');
+                }
+                // [Alt]: to handle has Attribute of p data-orig-stroke-width
+                if (p.hasAttribute('data-orig-stroke-width')) {
+                    var ow = p.getAttribute('data-orig-stroke-width');
+                    if (ow) p.setAttribute('stroke-width', ow);
+                    else p.removeAttribute('stroke-width');
+                    p.removeAttribute('data-orig-stroke-width');
+                    // [Alt]: to handle not has Attribute of p data-orig-stroke-width
+                } else {
+                    p.removeAttribute('stroke-width');
+                }
+            });
+        }
+        // [Opt]: to restore non-Graphviz wire chart arc element highlighting
+        if (!isGraphviz) {
+            nodeGroup.querySelectorAll('line, polyline, path, polygon').forEach(function (el) {
+                // [Esc]: skip elements belonging to nested child collapsible groups
+                if (el.closest('.collapsible-group') !== nodeGroup) return;
+                if (el.hasAttribute('data-orig-stroke')) {
+                    var os = el.getAttribute('data-orig-stroke');
+                    if (os) el.setAttribute('stroke', os);
+                    else el.removeAttribute('stroke');
+                    el.removeAttribute('data-orig-stroke');
+                }
+                if (el.hasAttribute('data-orig-stroke-width')) {
+                    var ow = el.getAttribute('data-orig-stroke-width');
+                    if (ow) el.setAttribute('stroke-width', ow);
+                    else el.removeAttribute('stroke-width');
+                    el.removeAttribute('data-orig-stroke-width');
+                }
+            });
+            // [Rpt]: to walk backwards through siblings to find source Wire Box title group
+            var prevSibling = nodeGroup.previousElementSibling;
+            while (prevSibling && prevSibling.classList && prevSibling.classList.contains('collapsible-group') && !prevSibling.querySelector(':scope > rect')) {
+                prevSibling = prevSibling.previousElementSibling;
+            }
+            if (prevSibling && prevSibling.classList && prevSibling.classList.contains('collapsible-group') && prevSibling.querySelector(':scope > rect')) {
+                var sourceRects = prevSibling.querySelectorAll(':scope > rect');
+                sourceRects.forEach(function (r) {
+                    if (r.hasAttribute('data-orig-stroke-width')) {
+                        var ow = r.getAttribute('data-orig-stroke-width');
+                        if (ow) r.setAttribute('stroke-width', ow);
+                        else r.removeAttribute('stroke-width');
+                        r.removeAttribute('data-orig-stroke-width');
+                    }
+                });
+                // [Opt]: to restore source Wire Box name text highlighting
+                var sourceTexts = Array.from(prevSibling.querySelectorAll('text')).filter(function (t) {
+                    return !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden');
+                });
+                sourceTexts.forEach(function (t) {
+                    if (t.hasAttribute('data-orig-fill')) {
+                        var of_ = t.getAttribute('data-orig-fill');
+                        if (of_) { t.setAttribute('fill', of_); t.style.fill = of_; }
+                        else { t.removeAttribute('fill'); t.style.fill = ''; }
+                        t.removeAttribute('data-orig-fill');
+                    }
+                    if (t.hasAttribute('data-orig-font-weight')) {
+                        var ofw = t.getAttribute('data-orig-font-weight');
+                        if (ofw) t.setAttribute('font-weight', ofw);
+                        else t.removeAttribute('font-weight');
+                        t.removeAttribute('data-orig-font-weight');
+                    }
+                });
+            }
+        }
+    }
+}
+
+/**
+ * to speak Visual Node text
+ * - Input: Node group element
+ * - Output: Spoken text string
+ */
+function speakNodeText(nodeGroup) {
+
+    var isAssoc = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME && window.NABU_VISUAL_NAME.indexOf('Association') !== -1);
+
+    // [Esc]: is Assoc
+    if (isAssoc) {
+        var gNode = nodeGroup.classList.contains('node') ? nodeGroup : nodeGroup.querySelector('.node');
+        if (gNode && !nodeGroup.classList.contains('edge') && !nodeGroup.querySelector('.edge')) {
+            var titleEl = gNode.querySelector('title');
+            // [Esc]: (titleEl)
+            if (titleEl) return titleEl.textContent.trim().replace(/\\n/g, ' ');
+        }
+    }
+
+    var isGraphviz = nodeGroup.classList.contains('node') || nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.node') !== null || nodeGroup.querySelector('.edge') !== null;
+    var targetTexts = [];
+    // [Esc]: is Graphviz
+    if (isGraphviz) {
+        targetTexts = Array.from(nodeGroup.querySelectorAll('text')).filter(function (t) {
+            return !t.classList.contains('collapsible-trigger') && t.closest('.collapsible-group') === nodeGroup;
+        });
+        // [Alt "not (isGraphviz)"]: to apply when not (isGraphviz
+    } else {
+        var directTexts = Array.from(nodeGroup.querySelectorAll('text')).filter(function (t) {
+            return t.closest('.collapsible-group') === nodeGroup && !t.classList.contains('collapsible-trigger') && !t.closest('.descriptor-cells');
+        });
+
+        targetTexts = targetTexts.concat(directTexts);
+
+        var isArc = isGraphviz || nodeGroup.querySelector('line') || nodeGroup.querySelector('path') || nodeGroup.querySelector('polygon') || nodeGroup.querySelector('polyline');
+
+        var prev = nodeGroup.previousElementSibling;
+        // [Opt]: to handle length of target Texts equals = 0 prev
+        if (targetTexts.length === 0 && prev) {
+            // [Alt]: to handle tag Name of prev equals = g tag Name of prev equals = G contains of class List of prev descriptor-cells
+            if ((prev.tagName === 'g' || prev.tagName === 'G') && prev.classList.contains('descriptor-cells')) {
+                var texts = prev.querySelectorAll('text');
+                if (texts.length > 0) targetTexts = targetTexts.concat(Array.from(texts));
+                // [Alt]: to handle tag Name of prev equals = text tag Name of prev equals = TEXT
+            } else if (prev.tagName === 'text' || prev.tagName === 'TEXT') {
+                targetTexts.push(prev);
+            }
+            // [Opt; Rpt]: to handle length of target Texts equals = 0 is Arc prev tag Name of prev ! equals g tag Name of prev ! equals G | OPT; RPT=
+            if (targetTexts.length === 0 && isArc) {
+                while (prev && prev.tagName !== 'g' && prev.tagName !== 'G') {
+                    // [Opt]: to handle tag Name of prev equals = text tag Name of prev equals = TEXT
+                    if (prev.tagName === 'text' || prev.tagName === 'TEXT') {
+                        targetTexts.unshift(prev);
+                    }
+                    prev = prev.previousElementSibling;
+                }
+            }
+        }
+    }
+
+    var joinStr = ' ';
+    var isInjectedRequires = false;
+    var txt = targetTexts.filter(function (domNode) {
+        return true;
+    }).map(function (t) {
+        var clone = t.cloneNode(true);
+        var triggers = Array.from(clone.querySelectorAll('.collapsible-trigger'));
+        triggers.forEach(function (trig) { trig.parentNode.removeChild(trig); });
+
+        var tspans = Array.from(clone.querySelectorAll('tspan'));
+        // [Esc]: length of tspans greater than rest
+        if (tspans.length > 0) {
+            return tspans.map(function (span) { return span.textContent.trim(); })
+                .filter(function (s) { return s.length > 0 && s.indexOf('|') === -1 && s.indexOf('<') === -1; })
+                .join(' ');
+        }
+        return clone.textContent.trim();
+    }).filter(function (t) {
+        var isAssoc = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME && window.NABU_VISUAL_NAME.indexOf('Association') !== -1);
+        // [Esc]: is Assoc match of t rest
+        if (isAssoc && (t.match(/port_/i) || t.match(/^:/) || t.match(/:\s*port/i))) return false;
+        return t.length > 0 && t.indexOf('|{') === -1 && t.indexOf('}|') === -1 && t !== '{' && t !== '}' && t !== '-';
+    }).join(joinStr);
+
+    // [Alt]: to use the JSON-based table manager (NABU_RULES) to process text formatting
+    if (typeof NABU_RULES !== 'undefined') {
+        var defaultVisual = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME) ? window.NABU_VISUAL_NAME : (window.location ? window.location.href : '');
+
+
+        var evalRule = function (t, r) {
+            // [Alt]: to handle replacement of r is not null regex of r
+            if (r.replacement != null && r.regex) {
+                return t.replace(new RegExp(r.regex, 'ig'), r.replacement);
+                // [Alt]: to handle prefix of r is not null postfix of r is not null
+            } else if (r.prefix != null || r.postfix != null) {
+                if (!r.regex || t.match(new RegExp(r.regex, 'i'))) {
+                    return (r.prefix || "") + t + (r.postfix || "");
+                }
+                // [Alt]: to handle regex of r
+            } else if (r.regex) {
+                return t.replace(new RegExp(r.regex, 'ig'), "");
+            }
+            return t;
+        };
+
+        // [Opt]: to handle name Adornment of NABU_ RULES
+        if (NABU_RULES.nameAdornment) {
+            var visualKey = Object.keys(NABU_RULES.nameAdornment).find(k => defaultVisual.indexOf(k) !== -1);
+            // [Opt]: to handle visual Key
+            if (visualKey) {
+                var rulesMap = NABU_RULES.nameAdornment[visualKey];
+
+                // [Scan]: to strip redundant 'and ' prefix added by genericRequirementLadder for legacy narrative reasons before conditionals
+                txt = txt.replace(/^and\s+(alt|opt|rpt|arg|pre|post|test|imp|ret|in scenario|substitute|sink|source)/i, '$1');
+
+                // [Scan]: to extract structural prefixes before evaluating structural regexes
+                var structuralRegex = /^(?:in scenario:\s*"[^"]*"\s*|substitute:\s*)?(?:(?:alt|opt|rpt|arg|pre|post|test|imp|ret|sink|source)[^:]*:\s*)*(?:\[\d+[a-z]{2}\]\s*)?/i;
+                var structMatch = txt.match(structuralRegex);
+                var extractedPrefix = "";
+                // [Opt]: to handle struct Match struct Match 0 .length greater than 0
+                if (structMatch && structMatch[0].length > 0) {
+                    extractedPrefix = structMatch[0];
+                    txt = txt.substring(extractedPrefix.length);
+                }
+
+                var eventTypesToCheck = ['foreignTraversal', 'ellipsis'];
+
+                var poly = Array.from(nodeGroup.querySelectorAll('polygon, polyline')).find(function (p) { return p.closest('.collapsible-group') === nodeGroup; }) || null;
+                var dashed = Array.from(nodeGroup.querySelectorAll('line[stroke-dasharray], path[stroke-dasharray], polygon[stroke-dasharray], polyline[stroke-dasharray]')).find(d => d.closest('.collapsible-group') === nodeGroup);
+                // [Opt]: to handle !dashed poly
+                if (!dashed && poly) {
+                    var pg = poly.closest('g');
+                    // [Opt]: to handle pg
+                    if (pg) dashed = Array.from(pg.querySelectorAll('[stroke-dasharray]')).find(d => d.closest('.collapsible-group') === nodeGroup);
+                }
+                var isDashed = dashed && dashed.getAttribute('stroke-dasharray') !== 'none';
+
+                var isEscape = false;
+                // [Opt; Opt; Opt]: to handle is Dashed tag Name of dashed equals = line tag Name of dashed equals = path !has Attribute of dashed marker-end !has Attribute of dashed marker-mid !has Attribute of dashed marker-start | OPT; OPT; OPT=
+                if (isDashed) {
+                    if (dashed.tagName === 'line' || dashed.tagName === 'path') {
+                        // [Alt]: to the lack of arrowhead markers implies an Escape dashed-line, not a Returned-value dashed-arc
+                        if (!dashed.hasAttribute('marker-end') && !dashed.hasAttribute('marker-mid') && !dashed.hasAttribute('marker-start')) {
+                            isEscape = true;
+                        }
+                    }
+                }
+
+                // [Alt]: to handle is Escape
+                if (isEscape) {
+                    eventTypesToCheck.push('escapeArc');
+                    // [Alt]: to handle is Dashed
+                } else if (isDashed) {
+                    eventTypesToCheck.push('dashedArc');
+                }
+
+                var isBackwardArc = false;
+                var isReflexive = false;
+
+                // [Opt]: to handle contains of class List of node Group edge
+                if (nodeGroup.classList.contains('edge')) {
+                    var titleEl = nodeGroup.querySelector('title');
+                    // [Opt]: to handle title El
+                    if (titleEl) {
+                        var edgeTitleParts = titleEl.textContent.split('->');
+                        // [Opt]: to handle length of edge Title Parts equals = 2 edge Title Parts 0 .trim equals = edge Title Parts 1 .trim
+                        if (edgeTitleParts.length === 2 && edgeTitleParts[0].trim() === edgeTitleParts[1].trim()) {
+                            isReflexive = true;
+                        }
+                    }
+                }
+
+                // [Opt]: to handle !is Reflexive
+                if (!isReflexive) {
+                    var ptsStr = poly ? poly.getAttribute('points') : null;
+                    // [Alt]: to handle !pts Str
+                    if (!ptsStr) {
+                        var line = Array.from(nodeGroup.querySelectorAll('line[marker-end], path[marker-end]')).find(function (l) { return l.closest('.collapsible-group') === nodeGroup; }) || null;
+                        if (line && line.tagName === 'line') {
+                            var x1 = parseFloat(line.getAttribute('x1')), x2 = parseFloat(line.getAttribute('x2'));
+                            var y1 = parseFloat(line.getAttribute('y1')), y2 = parseFloat(line.getAttribute('y2'));
+                            if (!isNaN(x1) && !isNaN(x2) && !isNaN(y1) && !isNaN(y2)) {
+                                if ((x1 > x2 + 15) || (y1 > y2 + 15)) isBackwardArc = true;
+                            }
+                        }
+                        // [Alt]: to handle pts Str
+                    } else if (ptsStr) {
+                        var ptArr = ptsStr.split(/[\s,]+/);
+                        var firstX = parseFloat(ptArr[0]), lastX = parseFloat(ptArr[ptArr.length - 2]);
+                        var firstY = parseFloat(ptArr[1]), lastY = parseFloat(ptArr[ptArr.length - 1]);
+                        if (!isNaN(firstX) && !isNaN(lastX) && !isNaN(firstY) && !isNaN(lastY)) {
+                            if ((firstX > lastX + 15) || (firstY > lastY + 15)) isBackwardArc = true;
+                        }
+
+                        var box = nodeGroup.previousElementSibling;
+                        while (box && box.classList && box.classList.contains('collapsible-group') && !box.querySelector(':scope > rect')) box = box.previousElementSibling;
+                        if (box) {
+                            var r = box.querySelector('rect');
+                            if (r) {
+                                var rcx = parseFloat(r.getAttribute('x')) + (parseFloat(r.getAttribute('width')) / 2);
+                                eventTypesToCheck.push((firstX > rcx) ? 'rightCoupling' : 'leftCoupling');
+                            }
+                        }
+                    }
+                }
+
+                // [Opt]: to handle !is Dashed !match of txt /returns/i is Backward Arc
+                if (!isDashed && !txt.match(/returns/i) && isBackwardArc) {
+                    eventTypesToCheck.push('backwardArc');
+                }
+
+                // [Alt]: to handle contains of class List of node Group edge query Selector of node Group .edge ! equals null
+                if (nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.edge') !== null) {
+                    eventTypesToCheck.push('requiresGraphvizEdge');
+                    // [Alt]: to handle not contains of class List of node Group edge query Selector of node Group .edge ! equals null
+                } else {
+                    eventTypesToCheck.push('requiresNonGraphviz');
+                    eventTypesToCheck.push('requiresGraphvizNode');
+                }
+
+                eventTypesToCheck.forEach(function (evt) {
+                    var rule = rulesMap[evt];
+                    // [Esc]: to handle !rule
+                    if (!rule) return;
+
+                    // [Alt]: to handle evt equals = left Coupling
+                    if (evt === 'leftCoupling') {
+                        var leftTxt = evalRule('', rule).trim();
+                        var tailTxt = txt.trim();
+                        if (leftTxt.length > 0) {
+                            if (tailTxt.length > 0) {
+                                txt = leftTxt + ' ' + tailTxt;
+                            } else {
+                                txt = leftTxt;
+                            }
+                            isInjectedRequires = false;
+                        } else {
+                            if (tailTxt.length > 0) {
+                                txt = "requires " + tailTxt;
+                            } else {
+                                txt = "requires";
+                            }
+                            isInjectedRequires = true;
+                        }
+                        // [Alt]: to handle evt equals = right Coupling
+                    } else if (evt === 'rightCoupling') {
+                        if (txt.length > 0) {
+                            var newTxt = evalRule(txt, rule);
+                            if (newTxt === txt) txt = "is coupled by " + txt + " with";
+                            else txt = newTxt;
+                        }
+                        // [Alt]: to handle evt equals = requires Graphviz Edge
+                    } else if (evt === 'requiresGraphvizEdge') {
+                        if (!txt.match(/requires/i) && !txt.match(/returns/i) && !txt.match(/to\s/i) && !txt.match(/No couplings inside/i) && txt.trim().length > 0) {
+                            txt = evalRule(txt, rule);
+                        }
+                        // [Alt]: to handle evt equals = requires Non Graphviz
+                    } else if (evt === 'requiresNonGraphviz') {
+                        if (txt.match(/(^|\s)to\s+/i)) {
+                            txt = evalRule(txt, rule);
+                        }
+                        // [Alt]: to handle evt equals = dashed Arc evt equals = backward Arc evt equals = foreign Traversal evt equals = ellipsis evt equals = escape Arc
+                    } else if (evt === 'dashedArc' || evt === 'backwardArc' || evt === 'foreignTraversal' || evt === 'ellipsis' || evt === 'escapeArc') {
+                        if (txt.length > 0) txt = evalRule(txt, rule);
+                    }
+                });
+
+                // [Scan]: to re-inject the structural prefix so it sits OUTSIDE the adorned phrasing
+                txt = extractedPrefix + txt;
+            }
+        }
+
+        // [Opt]: to handle prefix Replacement of NABU_ RULES global of prefix Replacement of NABU_ RULES
+        if (NABU_RULES.prefixReplacement && NABU_RULES.prefixReplacement.global) {
+            Object.keys(NABU_RULES.prefixReplacement.global).forEach(function (trigger) {
+                var rule = NABU_RULES.prefixReplacement.global[trigger];
+                var re = new RegExp('(?:^|\\s)' + trigger, 'ig');
+                txt = txt.replace(re, ' ' + rule.replacement + ' ');
+            });
+        }
+    }
+
+    var finalText = txt.trim();
+    // [Alt "(finalText.toLowerCase() === 'requires' && isInjectedRe…"]: to apply when finalText.toLowerCase() is 'requires' && isInjectedRe…
+    if (finalText.toLowerCase() === 'requires' && isInjectedRequires) {
+        try { nodeGroup.setAttribute('data-injected-requires', 'true'); } catch (e) { }
+        // [Alt "not (finalText.toLowerCase() === 'requires' && isInject…"]: to apply when not (finalText.toLowerCase() is 'requires' && isInject…
+    } else {
+        // [Guard]: to do RENAME ME vectorGraphic 623 0000
+        // [Esc Warning]: "e"
+        try { nodeGroup.removeAttribute('data-injected-requires'); } catch (e) { }
+    }
+
+    return finalText;
+}
+
+/**
+ * to expand all Visual Nodes
+ */
+function expandAllNodes() {
+    animatedNodes.forEach(function (node) {
+        node.style.display = 'inline';
+    });
+    document.querySelectorAll('g.collapsible-group').forEach(function (g) {
+        g.style.display = 'inline';
+    });
+    document.querySelectorAll('.collapsible-trigger').forEach(function (trigger) {
+        trigger.textContent = '-';
+        var g = trigger.closest('g');
+        // [Opt]: to handle g next Element Sibling of g tag Name of next Element Sibling of g equals = g
+        if (g && g.nextElementSibling && g.nextElementSibling.tagName === 'g') {
+            g.nextElementSibling.style.display = 'inline';
+        }
+    });
+
+    document.querySelectorAll('g.cluster').forEach(function (cluster) {
+        cluster.style.display = 'inline';
+    });
+
+    var allTargets = document.querySelectorAll('[data-targets]');
+    allTargets.forEach(function (el) {
+        var tStr = el.getAttribute('data-targets');
+        // [Opt]: to handle t Str
+        if (tStr) {
+            tStr.split(',').forEach(function (id) {
+                var t = document.getElementById(id);
+                // [Opt]: to handle t
+                if (t) {
+                    t.style.display = 'inline';
+                    // [Scan]: to optional: reset their data-ref-count to 1 or whatever default is
+                }
+            });
+        }
+    });
+}
+
+/**
+ * to collapse all Visual Nodes for Animation
+ */
+function collapseAllForAnimation() {
+
+    // [Guard]: to do RENAME ME vectorGraphic 676 0000
+    try {
+        // [Scan]: to 1a. Force global cleanup of text styles
+        document.querySelectorAll('.highlighted-node').forEach(function (node) {
+            if (node.classList) node.classList.remove('highlighted-node');
+            if (node.style) node.style.fill = "";
+            if (node.hasAttribute && node.hasAttribute('data-orig-font-weight')) {
+                var ofw = node.getAttribute('data-orig-font-weight');
+                if (ofw) node.setAttribute('font-weight', ofw);
+                else node.removeAttribute("font-weight");
+            } else if (node.removeAttribute) {
+                node.removeAttribute("font-weight");
+            }
+        });
+        // [Scan]: to 1a2. Force global cleanup of source box name fill overrides
+        document.querySelectorAll('text[data-orig-fill]').forEach(function (t) {
+            var of_ = t.getAttribute('data-orig-fill');
+            if (of_) { t.setAttribute('fill', of_); t.style.fill = of_; }
+            else { t.removeAttribute('fill'); t.style.fill = ''; }
+            t.removeAttribute('data-orig-fill');
+        });
+        // [Esc Warning]: "e"
+        // to log Error in text highlight wipe e
+    } catch (e) { console.error("Error in text highlight wipe", e); }
+
+    // [Guard]: to do RENAME ME vectorGraphic 694 0000
+    try {
+        // [Scan]: to 1b. Unconditionally crush any injected background rectangles and global overrides
+        document.querySelectorAll('.highlight-bg').forEach(function (bg) {
+            if (bg.parentNode) {
+                try { bg.parentNode.removeChild(bg); } catch (ex) { }
+            }
+        });
+        document.querySelectorAll('path[data-orig-stroke], polygon[data-orig-stroke], line[data-orig-stroke], polyline[data-orig-stroke]').forEach(function (p) {
+            var os = p.getAttribute('data-orig-stroke');
+            // [Alt]: to handle os
+            if (os) p.setAttribute('stroke', os);
+            // [Alt]: to handle not os
+            else p.removeAttribute('stroke');
+            p.removeAttribute('data-orig-stroke');
+        });
+        document.querySelectorAll('path[data-orig-stroke-width], polygon[data-orig-stroke-width], line[data-orig-stroke-width], polyline[data-orig-stroke-width], rect[data-orig-stroke-width]').forEach(function (p) {
+            var ow = p.getAttribute('data-orig-stroke-width');
+            // [Alt]: to handle ow
+            if (ow) p.setAttribute('stroke-width', ow);
+            // [Alt]: to handle not ow
+            else p.removeAttribute('stroke-width');
+            p.removeAttribute('data-orig-stroke-width');
+        });
+        document.querySelectorAll('path[stroke="Maroon"], polygon[stroke="Maroon"]').forEach(function (p) {
+            p.removeAttribute('stroke');
+            p.removeAttribute('stroke-width');
+        });
+        // [Esc Warning]: "e"
+        // to log Error in bg rect wipe e
+    } catch (e) { console.error("Error in bg rect wipe", e); }
+
+    // [Guard]: to do RENAME ME vectorGraphic 726 0000
+    try {
+        // [Scan]: to 2. Hide all structural groups to create a true blank canvas (hides loose Graphviz lines)
+        document.querySelectorAll('g.collapsible-group').forEach(function (g) {
+            g.style.display = 'none';
+            if (g.getBoundingClientRect) {
+                // [Scan]: to force Edge/Chromium Repaint flush to fix sticking ghost rects
+                var dummy = g.getBoundingClientRect().width;
+            }
+        });
+        // [Esc Warning]: "e"
+        // to log Error hiding collateral wrappers e
+    } catch (e) { console.error("Error hiding collateral wrappers", e); }
+
+    // [Guard]: to do RENAME ME vectorGraphic 740 0000
+    try {
+        // [Alt]: to 3. Progressive Reveal Engine Initialization
+        if (typeof animatedNodes !== 'undefined' && animatedNodes.length > 0) {
+            animatedNodes.forEach(function (node) {
+                node.style.display = 'none';
+            });
+        }
+        // [Esc Warning]: "e"
+        // to log Error dynamically unmasking ancestry e
+    } catch (e) { console.error("Error dynamically unmasking ancestry", e); }
+
+    // [Guard]: to do RENAME ME vectorGraphic 752 0000
+    try {
+        // [Scan]: to 4. Force specific clusters hidden to ensure clean visual reset
+        document.querySelectorAll('g.cluster').forEach(function (c) {
+            c.style.display = 'none';
+        });
+
+        // [Scan]: to 5. Reset triggers
+        document.querySelectorAll('.collapsible-trigger').forEach(function (trigger) {
+            trigger.textContent = '+';
+        });
+        // [Esc Warning]: "e"
+        // to log e
+    } catch (e) { console.error(e); }
+
+    // [Guard]: to do RENAME ME vectorGraphic 767 0000
+    try {
+        // [Scan]: to 6. Data Targets Normalization
+        document.querySelectorAll('[data-targets]').forEach(function (el) {
+            var tStr = el.getAttribute('data-targets');
+            if (tStr) {
+                tStr.split(',').forEach(function (id) {
+                    var t = document.getElementById(id);
+                    if (t) {
+                        if (t.hasAttribute('data-ref-count')) t.setAttribute('data-ref-count', '0');
+                        t.style.display = 'none';
+                    }
+                });
+            }
+        });
+        // [Esc Warning]: "e"
+        // to log Error in data targets e
+    } catch (e) { console.error("Error in data targets", e); }
+
+    // [Scan]: to tHE ULTIMATE EDGE CACHE BUSTER FOR STICKY GHOST RECTANGLES:
+    var rootSvg = document.querySelector('svg');
+    // [Opt]: to handle root Svg
+    if (rootSvg) {
+        rootSvg.style.display = 'none';
+        var _flushCache = rootSvg.getBoundingClientRect().height;
+        rootSvg.style.display = 'block';
+    }
+
+
+}
+
+// [Scan]: to ensure no concurrent multi-timers are spawned over multiple fast-clicks or loop rollovers
+var animationSafetyLock = false;
+
+/**
+ * to animate next Visual Node step
+ * - Input: Expected sequence ID
+ */
+function animateNextStep(expectedSeqId) {
+    // [Esc]: !is Animation Active nabu Animation rest
+    if (!isAnimationActive || nabuAnimationBlocked || animationSafetyLock) {
+        if (nabuAnimationBlocked)
+            return;
+    }
+    // [Esc]: expected Seq Id ! equals rest
+    if (expectedSeqId !== undefined && expectedSeqId !== currentAnimationSequenceId) {
+
+        return;
+    }
+    animationSafetyLock = true;
+
+    // [Guard]: to do RENAME ME vectorGraphic 818 0000
+    try {
+
+
+        // [Opt]: to handle current Animation Index greater or equal 0 current Animation Index less than length of animated Nodes
+        if (currentAnimationIndex >= 0 && currentAnimationIndex < animatedNodes.length) {
+            var prevNode = animatedNodes[currentAnimationIndex];
+            highlightNode(prevNode, false);
+            var prevTargetId = prevNode.getAttribute('data-highlight-target');
+            // [Opt]: to handle prev Target Id
+            if (prevTargetId) {
+                var prevTargetNode = document.getElementById(prevTargetId);
+                // [Opt]: to handle prev Target Node
+                if (prevTargetNode) highlightNode(prevTargetNode, false);
+            }
+        }
+
+        currentAnimationIndex++;
+
+        // [Opt; Opt]: to handle current Animation Index greater or equal length of animated Nodes length of animated Nodes greater than 0 | OPT; OPT="current Animation Index greater or equal length of animated Nodes" "length of animated Nodes greater than 0"
+        if (currentAnimationIndex >= animatedNodes.length) {
+
+            if (animatedNodes.length > 0) {
+                // [Scan]: to new Assignment: limit front-end animation to a single cycle. Animation shall go through the expansion process
+                // [Scan]: to of the visual exactly once and restore the visual to its full extent and unchecks the animation checkbox.
+
+                stopAnimation();
+                return;
+            } else {
+
+                return;
+            }
+        }
+
+        var currentNode = animatedNodes[currentAnimationIndex];
+
+        currentNode.style.display = 'inline';
+
+        // [Scan]: to dynamically unmask Outer wrapper hierarchy to ensure this node is visible through its parent chain
+        var p = currentNode.parentElement;
+        while (p && p.tagName === 'g') {
+            // [Opt]: to handle contains of class List of p collapsible-group
+            if (p.classList.contains('collapsible-group')) {
+                p.style.display = 'inline';
+                var pTrigger = p.querySelector('.collapsible-trigger');
+                if (pTrigger) pTrigger.textContent = '-';
+            }
+            p = p.parentElement;
+        }
+
+        highlightNode(currentNode, true);
+
+        // [Scan]: to process graphic target highlighting & unmasking IMMEDIATELY (prevents skipping if SAPI text is empty)
+        var targetId = currentNode.getAttribute('data-highlight-target');
+        // [Opt]: to handle target Id
+        if (targetId) {
+            var targetNode = document.getElementById(targetId);
+            // [Opt]: to handle target Node
+            if (targetNode) {
+                targetNode.style.display = 'inline';
+                var tp = targetNode.parentElement;
+                while (tp && tp.tagName === 'g') {
+                    // [Opt]: to handle contains of class List of tp collapsible-group
+                    if (tp.classList.contains('collapsible-group')) {
+                        tp.style.display = 'inline';
+                        var tpTrigger = tp.querySelector('.collapsible-trigger');
+                        if (tpTrigger) tpTrigger.textContent = '-';
+                    }
+                    tp = tp.parentElement;
+                }
+                highlightNode(targetNode, true);
+            }
+        }
+
+        // [Scan]: to use PRE-EXTRACTED node text to avoid DOM state inconsistency at speech end
+        var textToSpeak = (currentAnimationIndex >= 0 && currentAnimationIndex < animatedNodeData.length)
+            ? animatedNodeData[currentAnimationIndex].text
+            : '';
+
+        // [Opt]: to expose parents like cluster blocks when their inner child gets un-hidden
+        try {
+            var bbox = currentNode.getBBox();
+            // [Opt]: to handle width of bbox greater than 0 height of bbox greater than 0
+            if (bbox.width > 0 && bbox.height > 0) {
+                var cx = bbox.x + bbox.width / 2;
+                var cy = bbox.y + bbox.height / 2;
+                document.querySelectorAll('g.cluster').forEach(function (cluster) {
+                    // [Esc]: to handle display of style of cluster ! equals none
+                    if (cluster.style.display !== 'none') return;
+                    var poly = cluster.querySelector('polygon');
+                    // [Opt]: to handle poly
+                    if (poly) {
+                        var pBox = poly.getBBox();
+                        // [Opt]: to handle cx greater or equal x of p Box cx less or equal x of p Box + width of p Box cy greater or equal y of p Box cy less or equal y of p Box + height of p Box
+                        if (cx >= pBox.x && cx <= pBox.x + pBox.width &&
+                            cy >= pBox.y && cy <= pBox.y + pBox.height) {
+                            cluster.style.display = 'inline';
+                        }
+                    }
+                });
+            }
+            // [Esc Warning]: "e"
+        } catch (e) { }
+
+        // [Scan]: to skip non-visible sequences immediately but pause to decouple visual exposure
+        var speechCheckbox = document.getElementById('animSpeech');
+        // [Opt]: to handle speech Checkbox checked of speech Checkbox
+        if (speechCheckbox && speechCheckbox.checked) {
+            var diagBox = document.getElementById('nabu-diagnostic');
+            // [Opt]: to handle diag Box
+            if (diagBox) {
+                var safeTextToSpeak = textToSpeak ? textToSpeak.replace(/\[/g, ' ').replace(/\]/g, ' ').trim() : '[SILENT COMPONENT VISUALIZATION]';
+                diagBox.innerHTML = 'INDEX: ' + currentAnimationIndex + ' (of ' + animatedNodes.length + ')\n\nTEXT PRE-EXTRACTED:\n"' + safeTextToSpeak + '"';
+            }
+        }
+
+        var scheduleNextStep = function (delay) {
+
+            // [Esc]: to handle !is Animation Active expected Seq Id ! equals current Animation Sequence Id
+            if (!isAnimationActive || expectedSeqId !== currentAnimationSequenceId) {
+
+                return;
+            }
+            clearTimeout(animationTimer);
+
+            animationTimer = setTimeout(function () { animateNextStep(expectedSeqId); }, delay);
+        };
+
+        // [Esc]: to handle length of text To Speak equals = 0
+        if (textToSpeak.length === 0) {
+
+            var delay = (animationInterval > 0) ? 500 : 0;
+            scheduleNextStep(delay);
+            return;
+        }
+
+        var trigger = currentNode.querySelector('.collapsible-trigger');
+        // [Opt]: to handle trigger
+        if (trigger) trigger.textContent = '-';
+
+        // [Scan]: to suppress exact consecutive duplicates natively using aggressive alpha-numeric normalization
+        var aggSpoken = textToSpeak.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        // [Alt]: to handle last Spoken Aggressive of window equals = agg Spoken length of agg Spoken greater than 0
+        if (window.lastSpokenAggressive === aggSpoken && aggSpoken.length > 0) {
+            textToSpeak = null;
+            // [Alt]: to handle not last Spoken Aggressive of window equals = agg Spoken length of agg Spoken greater than 0
+        } else {
+            window.lastSpokenAggressive = aggSpoken;
+            window.lastSpokenText = textToSpeak;
+        }
+
+        var speechCheckbox = document.getElementById('animSpeech');
+        var speechEnabled = speechCheckbox && speechCheckbox.checked && textToSpeak && window.speechSynthesis && animationInterval > 1000;
+
+        // [Esc]: to handle speech Enabled
+        if (speechEnabled) {
+
+
+            var stepStart = Date.now();
+            var safeTextToSpeak = textToSpeak.replace(/\[/g, ' ').replace(/\]/g, ' ');
+            var seqSapi = expectedSeqId;
+            var token = ++nabuLatestSpeechToken;
+            nabuLatestSpeechSequenceId = seqSapi;
+
+            setTimeout(function () {
+
+                if (!isAnimationActive || nabuAnimationBlocked) {
+
+                    return;
+                }
+                if (seqSapi !== undefined && seqSapi !== currentAnimationSequenceId) {
+
+                    return;
+                }
+                if (seqSapi !== nabuLatestSpeechSequenceId || token !== nabuLatestSpeechToken) {
+
+                    return;
+                }
+
+
+                window._activeSapiMsg = new SpeechSynthesisUtterance(safeTextToSpeak);
+                nabuActiveSpeechUtterance = window._activeSapiMsg;
+                window._activeSapiMsg.volume = 1.0;
+                window._activeSapiMsg.rate = 1.0;
+                window._activeSapiMsg.pitch = 1.0; // Locked pitch. Varying pitch triggers Azure Cloud TTS fallback in Edge!
+
+                // [Opt]: to prefer high-quality voices over default robotic OS voices
+                var voices = window.speechSynthesis.getVoices();
+                if (voices && voices.length > 0) {
+                    var bestVoice = voices.find(function (v) {
+                        return (v.name.indexOf('Google') !== -1 || v.name.indexOf('Microsoft') !== -1 || v.name.indexOf('Natural') !== -1) && v.lang.indexOf('en') === 0;
+                    });
+                    if (!bestVoice) {
+                        // Fallback: any English voice that isn't the default eSpeak (if possible)
+                        bestVoice = voices.find(function (v) { return v.lang.indexOf('en') === 0 && v.name.indexOf('eSpeak') === -1; });
+                    }
+                    if (bestVoice) {
+                        window._activeSapiMsg.voice = bestVoice;
+                    }
+                }
+
+                window._activeSapiMsg.onstart = function () {
+
+                };
+                window._activeSapiMsg.onend = function () {
+
+                    nabuActiveSpeechUtterance = null;
+                    if (!isAnimationActive || nabuAnimationBlocked) {
+
+                        return;
+                    }
+                    if (seqSapi !== currentAnimationSequenceId) {
+
+                        return;
+                    }
+                    if (seqSapi !== nabuLatestSpeechSequenceId || token !== nabuLatestSpeechToken) {
+
+                        return;
+                    }
+
+                    // [Alt]: to when we reach the final node, terminate immediately and avoid an extra animation step.
+                    if (currentAnimationIndex >= animatedNodes.length - 1) {
+
+                        stopAnimation();
+                        return;
+                    }
+
+                    var elapsed = Date.now() - stepStart;
+                    var remaining = Math.max(0, animationInterval - elapsed);
+                    scheduleNextStep(remaining);
+                };
+                window._activeSapiMsg.onerror = function (e) {
+
+                    nabuActiveSpeechUtterance = null;
+                    if (!isAnimationActive || seqSapi !== currentAnimationSequenceId || seqSapi !== nabuLatestSpeechSequenceId || token !== nabuLatestSpeechToken || nabuAnimationBlocked) return;
+                    scheduleNextStep(animationInterval);
+                };
+                window.speechSynthesis.speak(window._activeSapiMsg);
+            }, 100);
+
+            return;
+        }
+
+        // [Alt]: to non-speaking path: maintain standard interval
+        if (animationInterval > 0) {
+            scheduleNextStep(animationInterval);
+        }
+        // [Esc Warning]: "e"
+    } catch (e) {
+        // to log Critical error in animateNextStep sequence: e
+        console.error("Critical error in animateNextStep sequence:", e);
+    } finally {
+        animationSafetyLock = false;
+    }
+}
+
+/**
+ * to show Animation Cancel popup
+ */
+function showAnimationCancelPopup() {
+    var popup = document.getElementById('nabu-animation-popup');
+    // [Opt]: to apply when !popup) {
+    if (!popup) {
+        popup = document.createElement('div');
+        popup.id = 'nabu-animation-popup';
+        popup.style.position = 'fixed';
+        popup.style.top = '20px';
+        popup.style.left = '50%';
+        popup.style.transform = 'translateX(-50%)';
+        popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        popup.style.color = 'white';
+        popup.style.padding = '10px 20px';
+        popup.style.borderRadius = '5px';
+        popup.style.zIndex = '9999';
+        popup.style.fontFamily = 'Arial, sans-serif';
+        popup.style.fontSize = '14px';
+        popup.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+        popup.style.display = 'flex';
+        popup.style.alignItems = 'center';
+        popup.style.gap = '15px';
+
+        var text = document.createElement('span');
+        text.innerText = 'Press <Escape> to cancel the animation';
+
+        var btn = document.createElement('button');
+        btn.innerText = 'Stop!';
+        btn.style.backgroundColor = '#d9534f';
+        btn.style.color = 'white';
+        btn.style.border = 'none';
+        btn.style.padding = '5px 10px';
+        btn.style.borderRadius = '3px';
+        btn.style.cursor = 'pointer';
+        btn.style.fontWeight = 'bold';
+
+        btn.onclick = function () {
+            var animWand = document.getElementById('animWand');
+            if (animWand) animWand.textContent = '\u{1FA84}';
+            stopAnimation();
+            popup.style.display = 'none';
+        };
+
+        popup.appendChild(text);
+        popup.appendChild(btn);
+        document.body.appendChild(popup);
+    }
+    popup.style.display = 'flex';
+
+    setTimeout(function () {
+        // [Opt]: to handle popup
+        if (popup) popup.style.display = 'none';
+    }, 5000);
+}
+
+/**
+ * to start Visual Animation
+ * - Input: Is auto start flag
+ */
+function startAnimation(isAutoStart) {
+    // [Opt]: to apply when isAutoStart === true) {
+    if (isAutoStart === true) {
+        showAnimationCancelPopup();
+    }
+    isAnimationActive = true;
+    nabuAnimationBlocked = false;
+    clearTimeout(animationTimer);
+    var seenCoords = {};
+    animatedNodes = Array.from(document.querySelectorAll('g.collapsible-group')).filter(function (node) {
+        var p = node.closest('div');
+        // [Esc]: to handle p style of p display of style of p equals = none
+        if (p && p.style && p.style.display === 'none') return false;
+        var shapes = Array.from(node.querySelectorAll('rect, polyline, polygon, line, path, circle, ellipse, text'));
+        var hasDirectShape = shapes.some(function (s) {
+            return s.closest('.collapsible-group') === node;
+        });
+        // [Esc]: to handle !has Direct Shape
+        if (!hasDirectShape) return false;
+
+        // [Guard]: to do RENAME ME vectorGraphic 1148 0000
+        try {
+            var bbox = node.getBBox();
+            // [Opt]: to handle width of bbox greater than 0 height of bbox greater than 0
+            if (bbox.width > 0 && bbox.height > 0) {
+                var rx = Math.round(bbox.x);
+                var ry = Math.round(bbox.y);
+                var rw = Math.round(bbox.width);
+                var rh = Math.round(bbox.height);
+
+                var foundMatch = false;
+                for (var key in seenCoords) {
+                    var parts = key.split('_');
+                    var ox = parseInt(parts[0]);
+                    var oy = parseInt(parts[1]);
+                    var ow = parseInt(parts[2]);
+                    var oh = parseInt(parts[3]);
+                    // [Alt]: to only match essentially perfect physical duplicates (shadow clones)
+                    if (Math.abs(ox - rx) <= 5 && Math.abs(oy - ry) <= 5 && Math.abs(ow - rw) <= 5 && Math.abs(oh - rh) <= 5) {
+
+                        foundMatch = true;
+                        break;
+                    }
+                }
+
+                // [Esc]: to handle found Match
+                if (foundMatch) {
+                    var isLadder = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME && window.NABU_VISUAL_NAME.indexOf('Requirement Ladder') !== -1);
+                    // [Scan]: to requirement Tree nests children inside parent collapsible-groups, so parent/child pairs
+                    // [Scan]: to legitimately share identical bounding boxes — do not deduplicate them.
+                    var isTree = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME && window.NABU_VISUAL_NAME.indexOf('Requirement Tree') !== -1);
+                    if (!isLadder && !isTree) return false;
+                }
+
+                var newKey = rx + "_" + ry + "_" + rw + "_" + rh;
+                seenCoords[newKey] = true;
+            }
+            // [Esc Warning]: "e"
+        } catch (e) { }
+
+        // [Esc]: to phonetic structural deduplication has been obliterated: Native Nabu uses identical textual footprints for legitimate multi-branch or recursive sequence rendering.
+        // [Esc]: to muting consecutive audio variants is handled directly down in `speakNodeText` SAPI dispatch.
+
+        return true;
+    });
+    // [Esc]: length of animated Nodes equals rest
+    if (animatedNodes.length === 0) return;
+
+    // [Scan]: to pRE-EXTRACT node text and metadata to eliminate DOM-state timing issues during speech dispatch
+    animatedNodeData = [];
+    var nodeDataByNode = new Map();
+    for (var i = 0; i < animatedNodes.length; i++) {
+        var nodeData = {
+            text: speakNodeText(animatedNodes[i]),
+            edgeTitle: null
+        };
+        var isGraphvizEdge = animatedNodes[i].classList.contains('edge') || animatedNodes[i].querySelector('.edge');
+        // [Opt]: to handle is Graphviz Edge
+        if (isGraphvizEdge) {
+            var tNode = animatedNodes[i].querySelector('title');
+            // [Opt]: to handle t Node
+            if (tNode) nodeData.edgeTitle = tNode.textContent.trim();
+        }
+        animatedNodeData.push(nodeData);
+        nodeDataByNode.set(animatedNodes[i], nodeData);
+
+    }
+
+    // [Scan]: to prepend source box name to wire chart arc speech when the box is already present
+    var defaultVisual = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME) ? window.NABU_VISUAL_NAME : (window.location ? window.location.href : '');
+    var isCoupling = defaultVisual.indexOf('Coupling Chart') !== -1;
+    if (isCoupling) {
+        var seenBoxGroups = new Set();
+        var boxesWithArcSpoken = new Set();
+        var rootBoxNode = null;
+        for (var i = 0; i < animatedNodes.length; i++) {
+            var node = animatedNodes[i];
+            var isGraphviz = node.classList.contains('node') || node.classList.contains('edge') || node.querySelector('.node') !== null || node.querySelector('.edge') !== null;
+            // [Opt]: to classify non-Graphviz node as box title or arc group
+            if (!isGraphviz) {
+                var hasDirectRect = node.querySelector(':scope > rect') !== null;
+                if (hasDirectRect) {
+                    // to register box title group as seen
+                    seenBoxGroups.add(node);
+                    if (!rootBoxNode) {
+                        rootBoxNode = node;
+                    }
+                } else {
+                    // [Rpt]: to walk backwards through siblings to find source box title group
+                    var prevSib = node.previousElementSibling;
+                    while (prevSib && prevSib.classList && prevSib.classList.contains('collapsible-group') && !seenBoxGroups.has(prevSib)) {
+                        prevSib = prevSib.previousElementSibling;
+                    }
+                    if (prevSib && seenBoxGroups.has(prevSib)) {
+                        // [Esc]: skip prefix on first arc from this box (box name was just spoken), instead prefix with "which, "
+                        if (!boxesWithArcSpoken.has(prevSib)) {
+                            boxesWithArcSpoken.add(prevSib);
+                            if (prevSib !== rootBoxNode && animatedNodeData[i].text) {
+                                animatedNodeData[i].text = 'which, ' + animatedNodeData[i].text;
+                            }
+                        } else {
+                            var boxNameEl = Array.from(prevSib.querySelectorAll('text')).find(function (t) {
+                                return !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden');
+                            });
+                            if (boxNameEl) {
+                                var boxName = boxNameEl.textContent.trim();
+                                if (boxName && animatedNodeData[i].text) {
+                                    animatedNodeData[i].text = boxName + ', ' + animatedNodeData[i].text;
+                                }
+                            }
+                        }
+
+                        // Postfix target box name if target box is already present
+                        var tgtId = node.getAttribute('data-highlight-target');
+                        if (tgtId) {
+                            var tgtNode = document.getElementById(tgtId);
+                            var tgtGroup = tgtNode;
+                            if (tgtGroup && !tgtGroup.querySelector(':scope > rect')) {
+                                tgtGroup = Array.from(tgtGroup.querySelectorAll('.collapsible-group')).find(function (g) {
+                                    return g.querySelector(':scope > rect') !== null;
+                                }) || tgtGroup;
+                            }
+                            if (tgtGroup && seenBoxGroups.has(tgtGroup)) {
+                                var tgtBoxNameEl = Array.from(tgtGroup.querySelectorAll('text')).find(function (t) {
+                                    return !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden');
+                                });
+                                if (tgtBoxNameEl) {
+                                    var tgtBoxName = tgtBoxNameEl.textContent.trim();
+                                    if (tgtBoxName && animatedNodeData[i].text) {
+                                        if (animatedNodeData[i].text.toLowerCase().indexOf(tgtBoxName.toLowerCase()) === -1) {
+                                            animatedNodeData[i].text = animatedNodeData[i].text + ' ' + tgtBoxName;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // [Esc]: standalone arc outside tree structure is a visual duplicate — skip during animation
+                        node.setAttribute('data-skip-animation', 'true');
+                    }
+                }
+            }
+        }
+    }
+
+    // [Scan]: to normalize text for coupling-target mapping (robust across punctuation and whitespace).
+    function normalizeText(t) {
+        return (t || '').toString().trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    // [Scan]: to merge empty Graphviz edges with their target nodes to eliminate 500ms stutters
+    for (var i = 0; i < animatedNodes.length; i++) {
+        var isGraphvizEdge = animatedNodes[i].classList.contains('edge') || animatedNodes[i].querySelector('.edge');
+        // [Opt]: to apply when isGraphvizEdge && animatedNodeData[i].text === '')
+        if (isGraphvizEdge && animatedNodeData[i].text === '') {
+            var tgtId = animatedNodes[i].getAttribute('data-highlight-target');
+            // [Opt]: to apply when tgtId) {
+            if (tgtId) {
+                var tgtNode = document.getElementById(tgtId);
+                var tgtGroup = tgtNode ? tgtNode.closest('.collapsible-group') : null;
+                var tgtData = tgtGroup ? nodeDataByNode.get(tgtGroup) : null;
+                // [Opt]: to apply when tgtNode && tgtData && tgtData.text) {
+                if (tgtGroup && tgtData && tgtData.text) {
+                    animatedNodeData[i].text = tgtData.text;
+                    tgtGroup.setAttribute('data-skip-animation', 'true');
+                }
+            }
+        }
+    }
+
+    // [Scan]: to remove connector-only or coupling-target nodes from the playback queue.
+    var couplingTargets = new Set();
+    animatedNodeData.forEach(function (d) {
+        // [Esc]: to handle !d !text of d
+        if (!d || !d.text) return;
+        var match = d.text.match(/(?:is )?coupled by\s+(.+?)\s+with/i);
+        // [Opt]: to handle match match 1
+        if (match && match[1]) {
+            couplingTargets.add(normalizeText(match[1]));
+        }
+    });
+
+    var filteredAnimatedNodes = [];
+    var filteredAnimatedNodeData = [];
+    for (var j = 0; j < animatedNodes.length; j++) {
+        var candidateText = (animatedNodeData[j] && animatedNodeData[j].text) ? animatedNodeData[j].text.trim() : '';
+        var candidateNormalized = normalizeText(candidateText);
+        var isInjectedRequires = (animatedNodes[j] && animatedNodes[j].getAttribute && animatedNodes[j].getAttribute('data-injected-requires') === 'true');
+        var isRealEdge = (animatedNodes[j].classList.contains('edge') || animatedNodes[j].querySelector('.edge') !== null);
+
+        // [Esc]: to handle !candidate Text !is Real Edge candidate Normalized equals = requires is Injected Requires has of coupling Targets candidate Normalized
+        if ((!candidateText && !isRealEdge) || (candidateNormalized === 'requires' && isInjectedRequires) || couplingTargets.has(candidateNormalized)) {
+
+            continue;
+        }
+
+        // [Esc]: to handle animated Nodes j .get Attribute data-skip-animation equals = true
+        if (animatedNodes[j].getAttribute('data-skip-animation') === 'true') {
+
+            continue;
+        }
+
+        filteredAnimatedNodes.push(animatedNodes[j]);
+        filteredAnimatedNodeData.push(animatedNodeData[j]);
+    }
+    animatedNodes = filteredAnimatedNodes;
+    animatedNodeData = filteredAnimatedNodeData;
+    // [Esc]: length of animated Nodes equals rest
+    if (animatedNodes.length === 0) {
+
+        return;
+    }
+
+
+
+    var isTree = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME && (window.NABU_VISUAL_NAME.indexOf('Requirement Tree') !== -1));
+    // [Esc]: is Tree
+    if (isTree) {
+        var lastColumnValue = -1;
+        for (var k = 0; k < animatedNodes.length; k++) {
+            var currNodeData = animatedNodeData[k];
+            var currentColumnValue = 0;
+
+            var triggerNode = animatedNodes[k].querySelector('.collapsible-trigger');
+            if (triggerNode) {
+                currentColumnValue = parseFloat(triggerNode.getAttribute('x') || '0');
+            } else {
+                var firstText = Array.from(animatedNodes[k].querySelectorAll('text')).find(function (t) {
+                    return t.closest('.collapsible-group') === animatedNodes[k] && !t.closest('.descriptor-cells') && !t.classList.contains('visually-hidden');
+                });
+                if (firstText) {
+                    currentColumnValue = parseFloat(firstText.getAttribute('x') || '0');
+                } else {
+                    try { currentColumnValue = animatedNodes[k].getBBox().x; } catch (e) { }
+                }
+            }
+
+            if (lastColumnValue !== -1) {
+                if (currentColumnValue < lastColumnValue - 5) {
+                    if (currNodeData.text && !currNodeData.text.match(/^back and/i) && !currNodeData.text.match(/returns/i) && !currNodeData.text.match(/\(already expanded\)/i)) {
+                        currNodeData.text = "back and " + currNodeData.text;
+                    }
+                } else if (Math.abs(currentColumnValue - lastColumnValue) <= 5) {
+                    if (currNodeData.text && !currNodeData.text.match(/^and/i) && !currNodeData.text.match(/^back and/i) && !currNodeData.text.match(/returns/i)) {
+                        currNodeData.text = "and " + currNodeData.text;
+                    }
+                } else if (currentColumnValue > lastColumnValue + 5) {
+                    if (currNodeData.text && currNodeData.text.match(/requires/i) && !currNodeData.text.match(/alternative/i)) {
+                        if (currNodeData.text.match(/^requires/i)) {
+                            currNodeData.text = "which " + currNodeData.text;
+                        } else {
+                            currNodeData.text = "which, " + currNodeData.text;
+                        }
+                    }
+                }
+            }
+            lastColumnValue = currentColumnValue;
+        }
+    }
+
+    // [Opt]: to optional: reduce to navigational chain by data-highlight-target to avoid stray side nodes in complex charts.
+    try {
+        var targetIds = new Set();
+        animatedNodes.forEach(function (n) {
+            var t = n.getAttribute('data-highlight-target');
+            // [Opt]: to handle t
+            if (t) targetIds.add(t);
+        });
+
+        var startCandidates = animatedNodes.filter(function (n) {
+            return !n.id || !targetIds.has(n.id);
+        });
+
+        // [Opt]: to handle length of start Candidates greater than 0
+        if (startCandidates.length > 0) {
+            var chain = [];
+            var visited = new Set();
+            var current = startCandidates[0];
+
+            while (current && !visited.has(current)) {
+                chain.push(current);
+                visited.add(current);
+                var nextTargetId = current.getAttribute('data-highlight-target');
+                // [Esc]: to handle !next Target Id
+                if (!nextTargetId) break;
+                var next = document.getElementById(nextTargetId);
+                // [Esc]: to handle !next
+                if (!next) break;
+                var nextGroup = next.closest('.collapsible-group');
+                // [Esc]: to handle !next Group has of visited next Group
+                if (!nextGroup || visited.has(nextGroup)) break;
+                current = nextGroup;
+            }
+
+            // [Alt]: to handle false length of chain greater than 1 length of chain less than length of animated Nodes
+            if (false && chain.length > 1 && chain.length < animatedNodes.length) {
+                animatedNodes = chain;
+                animatedNodeData = chain.map(function (node) { return nodeDataByNode.get(node); });
+
+                // [Alt]: to handle not false length of chain greater than 1 length of chain less than length of animated Nodes
+            } else {
+                // [Opt]: to handle length of chain greater than 0 length of chain ! equals length of animated Nodes
+                if (chain.length > 0 && chain.length !== animatedNodes.length) {
+
+                }
+            }
+        }
+        // [Esc Warning]: "e"
+    } catch (e) {
+
+    }
+
+    currentAnimationSequenceId++;
+    nabuLatestSpeechSequenceId = currentAnimationSequenceId;
+    nabuLatestSpeechToken++;
+
+    collapseAllForAnimation();
+    currentAnimationIndex = -1;
+    animateNextStep(currentAnimationSequenceId);
+}
+
+/**
+ * to stop Visual Animation
+ */
+function stopAnimation() {
+
+
+    isAnimationActive = false;
+    clearTimeout(animationTimer);
+
+    // [Scan]: to do not call window.speechSynthesis.cancel() unconditionally (Win11 Chrome/Edge lockup).
+    // [Scan]: to use sequence token guards while letting native speech drain safely.
+    nabuAnimationBlocked = true;
+    currentAnimationSequenceId = -1;
+    nabuLatestSpeechSequenceId = -1;
+    nabuLatestSpeechToken++;
+
+
+
+    // [Opt]: to apply when nabuActiveSpeechUtterance) {
+    if (nabuActiveSpeechUtterance) {
+        nabuActiveSpeechUtterance.onend = function () { };
+        nabuActiveSpeechUtterance.onerror = function () { };
+        nabuActiveSpeechUtterance = null;
+    }
+
+    // [Opt]: to apply when window._activeSapiMsg) {
+    if (window._activeSapiMsg) {
+        window._activeSapiMsg.onend = function () { };
+        window._activeSapiMsg.onerror = function () { };
+        window._activeSapiMsg = null;
+    }
+
+    // [Opt]: to apply when window.speechSynthesis) {
+    if (window.speechSynthesis) {
+        // [Alt]: to use pause/resume rather than cancel to avoid the known WebSpeech audio device deadlock.
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+            // [Guard]: to do RENAME ME vectorGraphic 1420 0000
+            try {
+                window.speechSynthesis.pause();
+                setTimeout(function () {
+                    // [Guard]: to do RENAME ME vectorGraphic 1424 0000
+                    // [Esc Warning]: "e"
+                    try { window.speechSynthesis.resume(); } catch (e) { }
+                }, 100);
+                // [Esc Warning]: "e"
+            } catch (e) {
+
+            }
+        }
+
+        // [Scan]: to full cleanup chain to reset the browser's audio path.
+        setTimeout(function () {
+            // [Opt]: to handle speaking of speech Synthesis of window pending of speech Synthesis of window
+            if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+                // [Scan]: to do NOT cancel here if we know it re-triggers the mute in this environment.
+
+            }
+
+            // [Opt]: to inject a near-silent utterance to wake audio routing on buggy browsers (avoid volume=0 deadlock).
+            try {
+                var flushUtterance = new SpeechSynthesisUtterance('\u200B');
+                flushUtterance.volume = 0.0;
+                flushUtterance.rate = 1.0;
+                flushUtterance.pitch = 1.0;
+                flushUtterance.onend = function () { };
+                window.speechSynthesis.speak(flushUtterance);
+            } catch (e) { }
+        }, 200);
+    }
+
+    // [Opt]: to apply when currentAnimationIndex >= 0 && currentAnimationInde
+    if (currentAnimationIndex >= 0 && currentAnimationIndex < animatedNodes.length) {
+        highlightNode(animatedNodes[currentAnimationIndex], false);
+    }
+    expandAllNodes();
+
+    // [Scan]: to clear pre-extracted data - CRITICAL: prevent stale onend handlers from accessing this
+    animatedNodeData = [];
+    animatedNodes = [];
+
+
+
+    var animWand = document.getElementById('animWand');
+    // [Opt]: to reset wand button icon
+    if (animWand) animWand.textContent = '\u{1FA84}';
+}
+
+/**
+ * to INITIALIZE Visual Animation
+ */
+function initAnimation() {
+    clearTimeout(animationTimer);
+
+    var animInput = document.getElementById('animInterval');
+
+    // [Opt]: to apply when animInput) {
+    if (animInput) {
+        var val = parseFloat(animInput.value);
+        // [Opt]: to apply when !isNaN(val)) {
+        if (!isNaN(val)) {
+            animationInterval = val * 1000;
+        }
+        animInput.onchange = function () {
+            setAnimationInterval(this.value);
+        };
+    }
+
+    animatedNodes = Array.from(document.querySelectorAll('g.collapsible-group')).filter(function (node) {
+        var p = node.closest('div');
+        // [Esc]: to handle p style of p display of style of p equals = none
+        if (p && p.style && p.style.display === 'none') return false;
+        var shape = node.querySelector('rect, polyline, polygon, line, path, circle, ellipse, text');
+        return shape && shape.closest('.collapsible-group') === node;
+    });
+
+    // [Opt]: to apply when baselineDisplayStates.length === 0) {
+    if (baselineDisplayStates.length === 0) {
+        document.querySelectorAll('g.collapsible-group, g.cluster').forEach(function (g) {
+            baselineDisplayStates.push({
+                el: g,
+                display: g.style.display || ''
+            });
+        });
+    }
+
+    // [Alt]: to automate animation at page open
+    if (false && animationInterval > 0 && animatedNodes.length > 0) {
+        animationTimer = setTimeout(function () {
+            startAnimation(true);
+        }, animationInterval);
+    }
+}
+
+/**
+ * to set Visual Animation interval
+ * - Input: Interval in seconds
+ */
+function setAnimationInterval(seconds) {
+    var val = parseFloat(seconds);
+    animationInterval = isNaN(val) ? 0 : val * 1000;
+
+    var animWand = document.getElementById('animWand');
+
+    // [Alt "(animationInterval <= 0)"]: to apply when animationInterval <= 0
+    if (animationInterval <= 0) {
+        // [Opt]: to reset wand button icon
+        if (animWand) animWand.textContent = '\u{1FA84}';
+        stopAnimation();
+        // [Alt "not (animationInterval <= 0)"]: to apply when not (animationInterval <= 0
+    } else {
+        // [Opt]: to handle is Animation Active
+        if (isAnimationActive) {
+            // [Scan]: to already active, let it continue
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initAnimation();
+});
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && isAnimationActive) {
+        var animWand = document.getElementById('animWand');
+        if (animWand) animWand.textContent = '\u{1FA84}';
+        stopAnimation();
+        var popup = document.getElementById('nabu-animation-popup');
+        if (popup) popup.style.display = 'none';
+    }
+});
+//]]>
+</script>
+
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+            <path d="M 0,0 L 10,5 L 0,10 L 3,5 Z" style="stroke:Red; fill:Red; stroke-width:1" />
+        </marker>
+    </defs>
+       <!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_3">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="170" height="70" x="80" y="72" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="170" height="70" x="84" y="68" rx="0" ry="0" fill="#e6eeff" stroke="#002b80" stroke-width="1" />
+<g>
+<text x="120" y="109" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="129" y="108" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">
+	<tspan xml:space="preserve" x="129" y="108" dx="0" dy="0.0em">to use My App</tspan>
+</text>
+</g>
+<line x1="85" y1="72" x2="85" y2="86" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="85" y1="96" x2="85" y2="110" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="85" y1="120" x2="85" y2="134" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_4">
+<!-- WireArc -->
+<polyline points="76,74 54,74 54,70 42,81 54,92 54,88 76,88 73,81 76,74" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="78,72 56,72 56,68 44,79 56,90 56,86 78,86 75,79 78,72" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="43" y1="80" x2="35" y2="77" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="31" y1="73" x2="31" y2="52" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="31" y1="52" x2="35" y2="48" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="46,80 35,77 31,73 31,52 35,48 46,47" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="43,42 65,42 65,38 77,49 65,60 65,56 43,56 46,49 43,42" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="46,40 68,40 68,36 80,47 68,58 68,54 46,54 49,47 46,40" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_4">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="170" height="22" x="80" y="40" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="170" height="22" x="84" y="36" rx="0" ry="0" fill="White" stroke="Black" stroke-width="1" />
+<text x="117" y="52" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="117" y="52" dx="44" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">...</a></tspan>
+</text>
+<line x1="85" y1="40" x2="85" y2="54" stroke="Black" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_2">
+<!-- WireArc -->
+<polyline points="76,98 54,98 54,94 42,105 54,116 54,112 76,112 73,105 76,98" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="78,96 56,96 56,92 44,103 56,114 56,110 78,110 75,103 78,96" stroke="sienna" stroke-width="1" stroke-dasharray="none"  fill="#f9f0eb" />
+<line x1="43" y1="104" x2="20" y2="110" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="16" y1="114" x2="16" y2="241" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="16" y1="241" x2="20" y2="245" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="46,104 20,110 16,114 16,241 20,245 46,247" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="43,242 65,242 65,238 77,249 65,260 65,256 43,256 46,249 43,242" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="46,240 68,240 68,236 80,247 68,258 68,254 46,254 49,247 46,240" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_2">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="170" height="22" x="80" y="240" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="170" height="22" x="84" y="236" rx="0" ry="0" fill="#ffeaff" stroke="purple" stroke-width="1" />
+<text x="100" y="252" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="100" y="252" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/UsingMyApp/0001.html">to Use My Fact-base</a></tspan>
+</text>
+<line x1="85" y1="240" x2="85" y2="254" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="253" y1="240" x2="253" y2="254" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_1">
+<!-- WireArc -->
+<polyline points="76,122 54,122 54,118 42,129 54,140 54,136 76,136 73,129 76,122" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="78,120 56,120 56,116 44,127 56,138 56,134 78,134 75,127 78,120" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<line x1="43" y1="128" x2="35" y2="131" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="31" y1="135" x2="31" y2="154" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="31" y1="154" x2="35" y2="158" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="46,128 35,131 31,135 31,154 35,158 46,159" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="43,154 65,154 65,150 77,161 65,172 65,168 43,168 46,161 43,154" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="46,152 68,152 68,148 80,159 68,170 68,166 46,166 49,159 46,152" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_1">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="170" height="46" x="80" y="152" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="170" height="46" x="84" y="148" rx="0" ry="0" fill="#ececf9" stroke="#262673" stroke-width="1" />
+<g>
+<text x="96" y="177" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="105" y="176" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="105" y="176" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/UsingMyApp/0001.html">to build My Fact-base</a></tspan>
+</text>
+</g>
+<line x1="85" y1="152" x2="85" y2="166" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="85" y1="176" x2="85" y2="190" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="253" y1="152" x2="253" y2="166" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="76,178 54,178 54,174 42,185 54,196 54,192 76,192 73,185 76,178" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="78,176 56,176 56,172 44,183 56,194 56,190 78,190 75,183 78,176" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<line x1="43" y1="184" x2="35" y2="187" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="31" y1="191" x2="31" y2="210" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="31" y1="210" x2="35" y2="214" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="46,184 35,187 31,191 31,210 35,214 46,215" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="43,210 65,210 65,206 77,217 65,228 65,224 43,224 46,217 43,210" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="46,208 68,208 68,204 80,215 68,226 68,222 46,222 49,215 46,208" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_5">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="170" height="22" x="80" y="208" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="170" height="22" x="84" y="204" rx="0" ry="0" fill="White" stroke="Black" stroke-width="1" />
+<text x="45" y="220" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="45" y="220" dx="116" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/UsingMyApp/0001.html">...</a></tspan>
+</text>
+<line x1="85" y1="208" x2="85" y2="222" stroke="Black" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_2">
+<!-- WireArc -->
+<polyline points="255,154 378,154 378,150 390,161 378,172 378,168 255,168 258,161 255,154" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="258,152 381,152 381,148 393,159 381,170 381,166 258,166 261,159 258,152" stroke="sienna" stroke-width="1" stroke-dasharray="none"  fill="#f9f0eb" />
+<line x1="396" y1="160" x2="404" y2="163" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="408" y1="167" x2="408" y2="246" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="408" y1="246" x2="389" y2="247" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="393,160 404,163 408,167 408,246 389,247" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="389,242 266,242 266,238 254,249 266,260 266,256 389,256 386,249 389,242" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="391,240 268,240 268,236 256,247 268,258 268,254 391,254 388,247 391,240" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<text x="268" y="250" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">My DOM class definitions</text>
+</g>
+</g>
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_4">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="170" height="22" x="80" y="40" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="170" height="22" x="84" y="36" rx="0" ry="0" fill="White" stroke="Black" stroke-width="1" />
+<text x="117" y="52" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="117" y="52" dx="44" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">...</a></tspan>
+</text>
+<line x1="85" y1="40" x2="85" y2="54" stroke="Black" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_1">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="170" height="46" x="80" y="152" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="170" height="46" x="84" y="148" rx="0" ry="0" fill="#ececf9" stroke="#262673" stroke-width="1" />
+<g>
+<text x="96" y="177" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="105" y="176" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="105" y="176" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/UsingMyApp/0001.html">to build My Fact-base</a></tspan>
+</text>
+</g>
+<line x1="85" y1="152" x2="85" y2="166" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="85" y1="176" x2="85" y2="190" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="253" y1="152" x2="253" y2="166" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="76,178 54,178 54,174 42,185 54,196 54,192 76,192 73,185 76,178" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="78,176 56,176 56,172 44,183 56,194 56,190 78,190 75,183 78,176" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<line x1="43" y1="184" x2="35" y2="187" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="31" y1="191" x2="31" y2="210" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="31" y1="210" x2="35" y2="214" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="46,184 35,187 31,191 31,210 35,214 46,215" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="43,210 65,210 65,206 77,217 65,228 65,224 43,224 46,217 43,210" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="46,208 68,208 68,204 80,215 68,226 68,222 46,222 49,215 46,208" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_2">
+<!-- WireArc -->
+<polyline points="255,154 378,154 378,150 390,161 378,172 378,168 255,168 258,161 255,154" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="258,152 381,152 381,148 393,159 381,170 381,166 258,166 261,159 258,152" stroke="sienna" stroke-width="1" stroke-dasharray="none"  fill="#f9f0eb" />
+<line x1="396" y1="160" x2="404" y2="163" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="408" y1="167" x2="408" y2="246" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="408" y1="246" x2="389" y2="247" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="393,160 404,163 408,167 408,246 389,247" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="389,242 266,242 266,238 254,249 266,260 266,256 389,256 386,249 389,242" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="391,240 268,240 268,236 256,247 268,258 268,254 391,254 388,247 391,240" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<text x="268" y="250" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">My DOM class definitions</text>
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_5">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="170" height="22" x="80" y="208" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="170" height="22" x="84" y="204" rx="0" ry="0" fill="White" stroke="Black" stroke-width="1" />
+<text x="45" y="220" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="45" y="220" dx="116" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/UsingMyApp/0001.html">...</a></tspan>
+</text>
+<line x1="85" y1="208" x2="85" y2="222" stroke="Black" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_2">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="170" height="22" x="80" y="240" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="170" height="22" x="84" y="236" rx="0" ry="0" fill="#ffeaff" stroke="purple" stroke-width="1" />
+<text x="100" y="252" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="100" y="252" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/UsingMyApp/0001.html">to Use My Fact-base</a></tspan>
+</text>
+<line x1="85" y1="240" x2="85" y2="254" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="253" y1="240" x2="253" y2="254" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</svg>

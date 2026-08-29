@@ -1,0 +1,441 @@
+/*
+ * Educational Site Generator — Stylesheet
+ * - Author: Avner Ben
+ * - Created: 14-Apr-2026
+ * - Generator: Antigravity (Gemini 3.1 Flash)
+ *  
+ * - Design: Two-panel layout (caption left, content right) using CSS Flexbox.
+ *   Retains the look-and-feel of the original educational site.
+ *   Fully responsive via media queries.
+ */
+
+/* ── Custom Properties ───────────────────────────────────────────── */
+:root {
+    --font-body: Arial, Helvetica, sans-serif;
+    --font-code: "Courier New", Courier, monospace;
+    --font-nav:  Verdana, Geneva, sans-serif;
+
+    --color-bg:            #ffffff;
+    --color-text:          #000000;
+    --color-link:          #0000cc;
+    --color-link-visited:  #551a8b;
+    --color-link-active:   #cc0000;
+
+    --color-caption-bg:    #ddf0e7;   /* original light green */
+    --color-caption-text:  #222222;
+    --color-header-accent: #491951;   /* original dark purple */
+    --color-nav-bg:        #f4f4f4;
+    --color-nav-border:    #cccccc;
+    --color-hr:            #0000cc;
+
+    --color-toc-header-bg: #c0c0c0;
+    --color-toc-border:    #888888;
+
+    --color-xref-letter:   #8b0000;   /* Maroon (original) */
+
+    --max-width:       860px;
+    --caption-width:   140px;
+
+    --font-size-base:  1rem;
+    --font-size-small: 0.8rem;
+    --font-size-nav:   0.85rem;
+    --font-size-toc:   0.9rem;
+}
+
+/* ── Reset / Base ────────────────────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    margin: 0;
+    padding: 0;
+}
+
+a             { color: var(--color-link); }
+a:visited     { color: var(--color-link-visited); }
+a:active      { color: var(--color-link-active); }
+
+hr.page-rule  {
+    border: none;
+    border-top: 2px solid var(--color-hr);
+    margin: 1rem 0;
+}
+
+/* ── Page Wrapper & Grid Layout ──────────────────────────────────── */
+.site-wrapper {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    background-color: var(--color-bg);
+}
+
+.site-grid {
+    display: grid;
+    grid-template-columns: calc(var(--caption-width) + 2rem) 1fr;
+    min-height: 100vh;
+}
+
+/* Left Column: Logo & Caption */
+.site-left {
+    background-color: var(--color-caption-bg);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--color-nav-border);
+}
+
+.site-logo {
+    width: 100%;
+    max-height: 100px;
+    display: block;
+    padding: 1rem;
+    box-sizing: border-box;
+    object-fit: contain;
+}
+
+.site-caption {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.95rem;
+    color: var(--color-caption-text);
+}
+
+.site-caption-id {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.2rem;
+}
+
+/* Right Column: Nav & Content */
+.site-right {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Navigation (Top Right Panel) ────────────────────────────────── */
+.site-nav {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    background-color: var(--color-nav-bg);
+    border-bottom: 1px solid var(--color-nav-border);
+    padding: 1rem 2rem;
+    box-sizing: border-box;
+    font-family: var(--font-nav);
+}
+
+/* Navigation Star (Legacy style) */
+.nav-star {
+    display: grid;
+    grid-template-columns: repeat(3, 22px);
+    grid-auto-rows: 22px;
+    gap: 1px;
+    align-items: center;
+    justify-items: center;
+    margin-top: 2px;
+}
+
+.nav-star a, .nav-star span.disabled {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    text-decoration: none;
+    border: none;
+    background-color: transparent;
+}
+
+.nav-star a:hover {
+    outline: 1px dotted var(--color-nav-border);
+}
+
+.nav-star a:active {
+    outline: 1px solid var(--color-nav-border);
+}
+
+.nav-star span.disabled {
+    border: none;
+    background-color: transparent;
+}
+
+.nav-up    { grid-column: 2; grid-row: 1; }
+.nav-left  { grid-column: 1; grid-row: 2; }
+.nav-in    { grid-column: 2; grid-row: 2; }
+.nav-right { grid-column: 3; grid-row: 2; }
+.nav-down  { grid-column: 2; grid-row: 3; }
+
+/* Hierarchical Header Column */
+.nav-hierarchy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    color: navy;
+}
+
+.nav-hier-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+}
+
+.nav-hier-num {
+    font-weight: bold;
+    min-width: 1.2rem;
+}
+
+.nav-hier-name {
+    color: navy;
+}
+.nav-hier-name a {
+    color: navy;
+    text-decoration: none;
+}
+.nav-hier-name a:hover {
+    text-decoration: underline;
+}
+
+.nav-hier-1 { font-size: 1.15rem; }
+.nav-hier-2 { font-size: 1.05rem; }
+.nav-hier-3 { font-size: 0.95rem; }
+.nav-hier-4 { font-size: 0.85rem; }
+
+/* ── Foil Page Frame (two-panel: caption + content) ──────────────── */
+.foil-frame {
+    display: flex;
+    gap: 0;
+    margin: 1rem 0;
+    min-height: 4rem;
+}
+
+.foil-caption-panel {
+    width: var(--caption-width);
+    min-width: var(--caption-width);
+    background-color: var(--color-caption-bg);
+    padding: 0.8rem 0.6rem;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.foil-title-block {
+    margin: 1.5rem 2rem 0.5rem 2rem;
+}
+
+.foil-title {
+    color: var(--color-header-accent);
+    font-size: 1.15rem;
+    font-weight: bold;
+    margin: 0 0 0.3rem 0;
+}
+
+.foil-divider {
+    border: none;
+    border-top: 2px solid var(--color-hr);
+    margin: 0.4rem 0 0.8rem 0;
+}
+
+/* ── Main Content Area ───────────────────────────────────────────── */
+.foil-content {
+    flex: 1;
+    padding: 0 2rem 1.5rem 2rem;
+}
+
+/* Layout Utilities (Rows & Cells) */
+.foil-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.foil-cell {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Content Element Classes ─────────────────────────────────────── */
+.foil-header {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: var(--color-header-accent);
+    margin: 0.8rem 0 0.3rem 0;
+}
+
+.foil-text {
+    margin: 0.4rem 0;
+    line-height: 1.5;
+}
+
+.foil-emphasized {
+    margin: 0.4rem 0;
+    line-height: 1.5;
+}
+
+.foil-code {
+    font-family: var(--font-code);
+    font-size: 0.88rem;
+    background-color: #f7f7f7;
+    border: 1px solid #ddd;
+    border-left: 3px solid var(--color-hr);
+    padding: 0.6rem 0.8rem;
+    margin: 0.6rem 0;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+.foil-caption-label {
+    font-size: var(--font-size-small);
+    color: #555;
+    margin: 0.3rem 0;
+}
+
+.foil-image {
+    margin: 0.8rem 0;
+    text-align: center;
+}
+
+.foil-image img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--color-nav-border);
+}
+
+/* ── TOC Tables ──────────────────────────────────────────────────── */
+.toc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-toc);
+    margin: 0.8rem 0;
+}
+
+.toc-table th {
+    background-color: var(--color-toc-header-bg);
+    font-family: var(--font-nav);
+    font-size: var(--font-size-small);
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--color-toc-border);
+    text-align: left;
+}
+
+.toc-table td {
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--color-toc-border);
+    vertical-align: top;
+}
+
+.toc-history {
+    font-size: 0.75rem;
+    color: #555;
+}
+
+/* ── Cross-Reference Table ───────────────────────────────────────── */
+.xref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-small);
+    margin: 0.8rem 0;
+}
+
+.xref-table th {
+    background-color: var(--color-toc-header-bg);
+    font-family: var(--font-nav);
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--color-toc-border);
+    text-align: center;
+}
+
+.xref-table td {
+    padding: 0.2rem 0.4rem;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+}
+
+.xref-letter {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 1.1rem;
+    color: var(--color-xref-letter);
+    font-weight: bold;
+    text-align: center;
+}
+
+/* ── Continuation & Global Navigation ────────────────────────────── */
+
+.site-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem 2rem 2rem 2rem;
+}
+
+.global-next {
+    display: inline-block;
+    padding: 0.5rem 1.2rem;
+    background-color: var(--color-link);
+    color: #ffffff !important;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 4px;
+}
+.global-next:hover {
+    background-color: var(--color-link-active);
+}
+.global-next.disabled {
+    background-color: #cccccc;
+    color: #666666;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 650px) {
+    :root {
+        --caption-width: 0;
+        --font-size-base: 0.95rem;
+    }
+
+    .site-grid {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .site-left {
+        flex-direction: row;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--color-nav-border);
+    }
+    
+    .site-logo {
+        width: auto;
+        height: 40px;
+        padding: 0.5rem;
+    }
+
+    .site-caption {
+        text-align: left;
+        padding: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .site-caption-id {
+        margin: 0;
+    }
+
+    .site-nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .nav-star {
+        align-self: center;
+    }
+    
+    .foil-content {
+        padding: 1rem;
+    }
+}

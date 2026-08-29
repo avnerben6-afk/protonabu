@@ -1,0 +1,92 @@
+PRODUCT: Snippet Adapter Package
+    IMPLEMENTATION [PACKAGE]: SnippetAdapterPackage
+        NAMESPACE: SnippetAdapterPackage
+
+    PART: Snippet Adapter Factory
+        STEREOTYPE: SINGLETON
+        IMPLEMENTATION: SnippetAdapterFactory
+        CAPABILITY: to tell if Snippet Adapter is registered for file name
+            INPUT: "file Name"
+                IMPLEMENTATION [str]: fileName
+            OUTPUT: "result"
+                IMPLEMENTATION [bool]: Result
+            IMPLEMENTATION [METHOD]: hasAdapter
+        CAPABILITY: to register Snippet Adapter
+            INPUT: "adapter"
+                IMPLEMENTATION [FactSnippetAdapter]: adapter
+            IMPLEMENTATION [METHOD]: register
+        CAPABILITY: to get Snippet Adapter by file name
+            INPUT: "file Name"
+                IMPLEMENTATION [str]: fileName
+            OUTPUT: "Snippet Adapter"
+                IMPLEMENTATION [Optional]: SnippetAdapter
+            IMPLEMENTATION [METHOD]: getAdapter
+        CAPABILITY: to adapt snippet output using registered adapter
+            INPUT: "nativesnippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "adapted snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: AdaptedSnippet
+            IMPLEMENTATION [METHOD]: adaptOutput
+            CONTRACT
+                WHEN [PRE "not adapter"]: ESCAPE [DONE]
+        CAPABILITY: to adapt snippet input using registered Adapter
+            INPUT: "raw snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "native snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: NativeSnippet
+            IMPLEMENTATION [METHOD]: adaptInput
+            CONTRACT
+                WHEN [PRE "not adapter"]: ESCAPE [DONE]
+        CAPABILITY: to INITIALIZE Snippet Adapter Factory
+            IMPLEMENTATION [METHOD]: __init__
+    END: PART // Snippet Adapter Factory
+
+    PART: Line Adapter Fact Stream
+        IMPLEMENTATION: SnippetAdapterSource
+        CAPABILITY: to import fact-line thru <SUBSTITUTE Line> Adapter Fact Stream
+            INPUT: "Foreign format line"
+                IMPLEMENTATION [str]: line
+            OUTPUT: "Native format line"
+                IMPLEMENTATION [str]: NativeFormatLine
+            IMPLEMENTATION [METHOD]: toNative
+        CAPABILITY: to export fact-line thru <SUBSTITUTE Line> Adapter Fact Stream
+            INPUT: "Native format line"
+                IMPLEMENTATION [str]: line
+            OUTPUT: "Foreign format line"
+                IMPLEMENTATION [str]: ForeignFormatLine
+            IMPLEMENTATION [METHOD]: toForeign
+        CAPABILITY: to close <Line Adapter> Fact Stream
+            IMPLEMENTATION [METHOD]: close
+        CAPABILITY: to append line to <Line Adapter> Fact Stream
+            INPUT: "fact"
+                IMPLEMENTATION [str]: fact
+            IMPLEMENTATION [METHOD]: add
+        CAPABILITY: to TRAVERSE <Line Adapter> Fact Stream
+            OUTPUT: "result"
+                IMPLEMENTATION [Iterator]: Result
+            IMPLEMENTATION [METHOD]: __iter__
+        CAPABILITY: to INITIALIZE Line Adapter Fact Stream
+            INPUT: "wrapped"
+                IMPLEMENTATION [ISource]: wrapped
+            IMPLEMENTATION [METHOD]: __init__
+    END: PART // Line Adapter Fact Stream
+
+    PART: Fact Snippet Adapter
+        STEREOTYPE: ABSTRACT
+        IMPLEMENTATION: FactSnippetAdapter
+        CAPABILITY: to import facts thru <SUBSTITUTE Fact> Snippet Adapter
+            INPUT: "foreign format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "native format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: NativeFormatSnippet
+            IMPLEMENTATION [METHOD]: adaptInput
+        CAPABILITY: to export facts thru <SUBSTITUTE Fact> Snippet Adapter
+            INPUT: "native format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: snippet
+            OUTPUT: "foreign format snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: ForeignFormatSnippet
+            IMPLEMENTATION [METHOD]: adaptOutput
+    END: PART // Fact Snippet Adapter
+
+END: PRODUCT // Snippet Adapter Package
+

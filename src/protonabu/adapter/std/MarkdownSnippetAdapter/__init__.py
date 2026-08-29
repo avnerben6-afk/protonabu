@@ -1,0 +1,1 @@
+# MarkdownSnippetAdapter package

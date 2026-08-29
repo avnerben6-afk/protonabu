@@ -1,0 +1,3 @@
+@startebnf
+IMAGE = "quotedText" , { ALT } ;
+@endebnf

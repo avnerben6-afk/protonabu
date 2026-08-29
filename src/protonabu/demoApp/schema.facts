@@ -1,0 +1,63 @@
+// Educational Site Generator - Protonabu Schema
+// Defines the grammar for a .facts educational site specification file.
+// Author: Avner Ben
+//    - Created: 14-Apr-2026
+//    - Generator: Antigravity (Gemini 3.5 Flash)
+//        - Generated: 14-Apr-2026
+
+__SCHEMA_SECTION__: TOKENS
+
+BOOK: quotedName
+    AUTHOR: quotedName
+    VERSION: quotedName
+    DATE: quotedName
+    LOGO: quotedText
+    CHAPTER: quotedName
+        DESCRIPTOR: quotedText?
+        PREFIX: quotedName?
+        SECTION: quotedName
+            DESCRIPTOR: quotedText?
+            PREFIX: quotedName?
+            CROSS REFERENCE
+            PAGE: quotedName
+                CAPTION: quotedText?
+                PREFIX: quotedName?
+                HEADER: quotedText
+                TEXT: quotedText
+                EMPHASIZED: quotedText
+                CODE: quotedText
+                CAPTION LABEL: quotedText
+                IMAGE: quotedText
+                    ALT: quotedText?
+                KEYWORD [quotedName]: quotedName
+                CONTINUATION
+                    HEADER: quotedText
+                        __DITTO__: BOOK / CHAPTER / SECTION / PAGE / HEADER
+                    TEXT: quotedText
+                        __DITTO__: BOOK / CHAPTER / SECTION / PAGE / TEXT
+                    EMPHASIZED: quotedText
+                        __DITTO__: BOOK / CHAPTER / SECTION / PAGE / EMPHASIZED
+                    CODE: quotedText
+                        __DITTO__: BOOK / CHAPTER / SECTION / PAGE / CODE
+                    CAPTION LABEL: quotedText
+                        __DITTO__: BOOK / CHAPTER / SECTION / PAGE / CAPTION LABEL
+                    IMAGE: quotedText
+                        __DITTO__: BOOK / CHAPTER / SECTION / PAGE / IMAGE
+                    KEYWORD [quotedName]: quotedName
+                        __DITTO__: BOOK / CHAPTER / SECTION / PAGE / KEYWORD
+                ROW
+                    CELL
+                        HEADER: quotedText
+                            __DITTO__: BOOK / CHAPTER / SECTION / PAGE / HEADER
+                        TEXT: quotedText
+                            __DITTO__: BOOK / CHAPTER / SECTION / PAGE / TEXT
+                        EMPHASIZED: quotedText
+                            __DITTO__: BOOK / CHAPTER / SECTION / PAGE / EMPHASIZED
+                        CODE: quotedText
+                            __DITTO__: BOOK / CHAPTER / SECTION / PAGE / CODE
+                        CAPTION LABEL: quotedText
+                            __DITTO__: BOOK / CHAPTER / SECTION / PAGE / CAPTION LABEL
+                        IMAGE: quotedName
+                            __DITTO__: BOOK / CHAPTER / SECTION / PAGE / IMAGE
+                        KEYWORD [quotedName]: quotedName
+                            __DITTO__: BOOK / CHAPTER / SECTION / PAGE / KEYWORD

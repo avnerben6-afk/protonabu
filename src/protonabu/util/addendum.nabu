@@ -1,0 +1,14 @@
+PROJECT: Protonabu Package Project
+
+PRODUCT: Utilities Package
+    DESIGNATION: INFRASTRUCTURE
+    IMPLEMENTATION [PACKAGE]: util
+        LANGUAGE: Python
+
+    USE CASE: to find first occurrence in iterable
+        TITLE: Finding first occurrence in iterable
+        REQUIRES: to find first occurrence in iterable
+
+    USE CASE: to make programmatic name from literate name
+        TITLE: Making programmatic name from literate name
+        REQUIRES: to make programmatic name from literate name

@@ -1,0 +1,57 @@
+<svg height="411" width="306" name="" xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+            <path d="M0 0 L10 5 L0 10 L3 5 Z" style="stroke:Red;fill:Red;stroke-width:1" />
+        </marker>
+    </defs>
+       <line x1="10" y1="61" x2="44" y2="61" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="46" y="66" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to develop software</text>
+<polyline points="48,68 48,85 50,87 48,87" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="48" y1="87" x2="82" y2="87" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="84" y="90" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to define the requirements</text>
+<polyline points="50,87 48,89 48,157 50,159 48,159" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="48" y1="159" x2="82" y2="159" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="84" y="162" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to design the solution</text>
+<polyline points="50,159 48,161 48,301 50,303 48,303" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="48" y1="303" x2="82" y2="303" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="84" y="306" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to implement the solution</text>
+<polyline points="86,92 86,109 88,111 86,111" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="86" y1="111" x2="121" y2="111" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<ellipse cx="97" cy="116" ry="5" rx="10" stroke="Red" stroke-width="1" fill="none" />
+<line x1="99" y1="120" x2="102" y2="120" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="123" y="114" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to understand need</text>
+<polyline points="88,111 86,113 86,133 88,135 86,135" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="86" y1="135" x2="121" y2="135" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="123" y="138" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to model the problem domain</text>
+<polyline points="86,164 86,181 88,183 86,183" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="86" y1="183" x2="121" y2="183" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<ellipse cx="97" cy="188" ry="5" rx="10" stroke="Red" stroke-width="1" fill="none" />
+<line x1="99" y1="192" x2="102" y2="192" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="123" y="186" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to select architecture</text>
+<polyline points="88,183 86,185 86,229 88,231 86,231" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="86" y1="231" x2="121" y2="231" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="123" y="234" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to model the solution domain</text>
+<polyline points="88,231 86,233 86,277 88,279 86,279" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="86" y1="279" x2="121" y2="279" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="123" y="282" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to confirm traceability</text>
+<polyline points="86,308 86,325 88,327 86,327" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="86" y1="327" x2="121" y2="327" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="123" y="330" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to code the solution</text>
+<polyline points="88,327 86,329 86,349 88,351 86,351" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="86" y1="351" x2="121" y2="351" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="123" y="354" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to test the solution</text>
+<polyline points="88,351 86,353 86,373 88,375 86,375" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="86" y1="375" x2="121" y2="375" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="123" y="378" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to package the solution</text>
+<polyline points="125,188 125,205 127,207 125,207" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="125" y1="207" x2="160" y2="207" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<ellipse cx="136" cy="212" ry="5" rx="10" stroke="Red" stroke-width="1" fill="none" />
+<line x1="138" y1="216" x2="141" y2="216" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="162" y="210" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to make design decision</text>
+<polyline points="125,236 125,253 127,255 125,255" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="125" y1="255" x2="160" y2="255" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<ellipse cx="135" cy="260" ry="5" rx="10" stroke="Red" stroke-width="1" fill="none" />
+<line x1="137" y1="264" x2="140" y2="264" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<text x="162" y="258" font-size="12px" font-family="Arial" font-weight="light" font-style="normal" fill="Black">to apply design pattern</text>
+</svg>

@@ -1,0 +1,1 @@
+# JsonSnippetAdapter package

@@ -1,0 +1,3 @@
+@startebnf
+KEYWORD = "quotedName" , "quotedName" ;
+@endebnf

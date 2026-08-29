@@ -1,0 +1,3 @@
+@startebnf
+EMPHASIZED = "quotedText" ;
+@endebnf

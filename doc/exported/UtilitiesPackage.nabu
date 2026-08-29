@@ -1,0 +1,453 @@
+PRODUCT: Utilities Package
+    DESIGNATION: INFRASTRUCTURE
+    IMPLEMENTATION [PACKAGE]: util
+        LANGUAGE: Python
+
+    PART: Quantity Narrator
+        IMPLEMENTATION: QuantityNarrator
+        CAPABILITY: to pluralize English noun or noun phrase
+            INPUT: "word"
+                IMPLEMENTATION [str]: word
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: pluralize
+            CONTRACT
+                WHEN [PRE "not word"]: ESCAPE [DONE]
+                WHEN [PRE "not words"]: ESCAPE [DONE]
+        CAPABILITY: to narrate list of subject and quantity 2-tuples
+            INPUT: "self_or_cls"
+            INPUT [OPT "None"]: "items"
+                IMPLEMENTATION [Iterable]: items
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: narrateQuantity
+            CONTRACT
+                WHEN [PRE "not target_items"]: ESCAPE [DONE]
+        CAPABILITY: to narrate list of subject and quantity 2-tuples as callable
+            INPUT [OPT "None"]: "items"
+                IMPLEMENTATION [Iterable]: items
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: __call__
+        CAPABILITY: to narrate item
+            INPUT: "cls"
+            INPUT: "subject"
+                IMPLEMENTATION [str]: subject
+            INPUT: "quantity"
+                IMPLEMENTATION [int]: quantity
+            INPUT [OPT "False"]: "is First"
+                IMPLEMENTATION [bool]: isFirst
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: narrateItem
+        END: CAPABILITY // to narrate item
+        CAPABILITY: to INITIALIZE Quantity Narrator
+            INPUT [OPT "None"]: "items"
+                IMPLEMENTATION [Iterable]: items
+            IMPLEMENTATION [METHOD]: __init__
+    END: PART // Quantity Narrator
+
+    PART: Protonabu Exception
+        IMPLEMENTATION: Error
+        CAPABILITY: to set field in error message
+            INPUT: "name"
+                IMPLEMENTATION [str]: key
+            INPUT: "value"
+                IMPLEMENTATION [Any]: value
+            INPUT [OPT "False"]: "overwrite"
+                IMPLEMENTATION [bool]: overwrite
+            IMPLEMENTATION [METHOD]: set
+        CAPABILITY: to get field from error message
+            INPUT: "field name"
+                IMPLEMENTATION [str]: inKey
+            OUTPUT: "field value"
+                IMPLEMENTATION [Optional]: FieldValue
+            IMPLEMENTATION [METHOD]: get
+        CAPABILITY: to INITIALIZE Protonabu Exception
+            INPUT: "message"
+                IMPLEMENTATION [Any]: message
+            INPUT [OPT "None"]: "fields"
+                IMPLEMENTATION [Optional]: fields
+            IMPLEMENTATION [METHOD]: __init__
+            CONTRACT
+                WHEN [PRE "isinstance message Error"]: ESCAPE [DONE]
+                WHEN [PRE "not fields"]: ESCAPE [DONE]
+    END: PART // Protonabu Exception
+
+    PART: Parsing Error
+        IMPLEMENTATION: ParsingError
+        CAPABILITY: to INITIALIZE Parsing Error
+            INPUT: "message or Parse Exception"
+                IMPLEMENTATION [Any]: message
+            INPUT [OPT "None"]: "where"
+                IMPLEMENTATION [Optional]: where
+            INPUT [OPT "None"]: "fields"
+                IMPLEMENTATION [Optional]: fields
+            IMPLEMENTATION [METHOD]: __init__
+
+    PART: Name Maker
+        IMPLEMENTATION: NameMaker
+        CAPABILITY: to translate magic method to Nabu capability verb
+            INPUT: "method Name"
+                IMPLEMENTATION [str]: methodName
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: translateMagicMethod
+            CONTRACT
+                WHEN [PRE "method Name in self MAGIC_ METHODS"]: ESCAPE [DONE]
+        CAPABILITY: to restore literate name from programmatic name
+            INPUT: "s"
+                IMPLEMENTATION [str]: s
+            INPUT [OPT "None"]: "suffix"
+            INPUT [OPT "False"]: "lower Case Abbreviations"
+            INPUT [OPT "False"]: "upper"
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: unMakeProgrammaticName
+            CONTRACT
+                WHEN [PRE "not s"]: ESCAPE [DONE]
+                WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+        END: CAPABILITY // to restore literate name from programmatic name
+        CAPABILITY: to register domain-specific magic methods mapping
+            INPUT: "cls"
+            INPUT: "mapping"
+                IMPLEMENTATION [MAPPING]: mapping
+                    CONTAINS: str
+            IMPLEMENTATION [METHOD]: setMagicMethods
+        CAPABILITY: to register an existing name in the given scopes
+            INPUT: "name"
+                IMPLEMENTATION [str]: name
+            INPUT: "scopes"
+                IMPLEMENTATION [ORDERED]: scopes
+            INPUT [OPT "None"]: "ref"
+                IMPLEMENTATION [Any]: ref
+            IMPLEMENTATION [METHOD]: register
+            CONTRACT
+                WHEN [PRE "not scopes"]: ESCAPE [DONE]
+        CAPABILITY: to programmatize name
+            INPUT: "name"
+                IMPLEMENTATION [str]: name
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: processWord
+            CONTRACT
+                WHEN [PRE "in name"]: ESCAPE [DONE]
+        CAPABILITY: to make programmatic name from literate name
+            INPUT: "name"
+                IMPLEMENTATION [str]: name
+            INPUT [OPT ""]: "suffix"
+                IMPLEMENTATION [str]: suffix
+            INPUT [OPT ""]: "ignore Last"
+                IMPLEMENTATION [str]: ignoreLast
+            INPUT [OPT "True"]: "cap First"
+                IMPLEMENTATION [bool]: capFirst
+            INPUT [OPT "False"]: "is Acronym"
+                IMPLEMENTATION [bool]: isAcronym
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: makeProgrammaticName
+            CONTRACT
+                WHEN [PRE "Missing name"]: ERROR [ERROR]
+                WHEN [PRE "cannot make programmatic name for name"]: ERROR [ERROR]
+        END: CAPABILITY // to make programmatic name from literate name
+        CAPABILITY: to make unique programmatic name from literate name
+            INPUT: "name"
+                IMPLEMENTATION [str]: name
+            INPUT [OPT "None"]: "scopes"
+                IMPLEMENTATION [ORDERED]: scopes
+            INPUT [OPT "None"]: "ref"
+                IMPLEMENTATION [Any]: ref
+            INPUT [OPT ""]: "suffix"
+                IMPLEMENTATION [str]: suffix
+            INPUT [OPT ""]: "ignore Last"
+                IMPLEMENTATION [str]: ignoreLast
+            INPUT [OPT "True"]: "cap First"
+                IMPLEMENTATION [bool]: capFirst
+            INPUT [OPT "False"]: "is Acronym"
+                IMPLEMENTATION [bool]: isAcronym
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: makeUniqueProgrammaticName
+            CONTRACT
+                WHEN [PRE "not scopes"]: ESCAPE [DONE]
+                WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+        END: CAPABILITY // to make unique programmatic name from literate name
+        CAPABILITY: to clear all registries
+            IMPLEMENTATION [METHOD]: clearRegistries
+        CAPABILITY: to add abbreviation for use in programmatic names
+            INPUT: "kwd"
+                IMPLEMENTATION [str]: kwd
+            INPUT: "abbrev"
+                IMPLEMENTATION [str]: abbrev
+            INPUT [OPT "True"]: "add To Abbrevs"
+            INPUT [OPT "True"]: "add To Cross Abbrevs"
+            IMPLEMENTATION [METHOD]: addAbbreviation
+        CAPABILITY: to INITIALIZE Name Maker
+            IMPLEMENTATION [METHOD]: __init__
+    END: PART // Name Maker
+
+    PART: Internal Protonabu Exception
+        IMPLEMENTATION: InternalError
+        CAPABILITY: to INITIALIZE internal Protonabu Exception
+            INPUT: "message"
+                IMPLEMENTATION [str]: message
+            INPUT [OPT "None"]: "fields"
+                IMPLEMENTATION [Optional]: fields
+            IMPLEMENTATION [METHOD]: __init__
+
+    PART: Fact File Error
+        IMPLEMENTATION: FactFileError
+        CAPABILITY: to INITIALIZE Fact File Error
+            INPUT: "filename or fact object"
+                IMPLEMENTATION [Any]: filename
+            INPUT: "line number or message"
+                IMPLEMENTATION [Any]: lineNumber
+            INPUT: "message"
+                IMPLEMENTATION [str]: msg
+            INPUT: "fields"
+                IMPLEMENTATION [Optional]: fields
+            IMPLEMENTATION [METHOD]: __init__
+    END: PART // Fact File Error
+
+    CAPABILITY: to un-capitalize first words in name leaving rest of name intact
+        INPUT: "name"
+            IMPLEMENTATION [str]: name
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: unCapName
+    CAPABILITY: to tell if item exists in iterable
+        INPUT: "where"
+            IMPLEMENTATION [Iterable]: where
+        INPUT: "to compare with object"
+            IMPLEMENTATION [Callable]: cmp
+        OUTPUT: "result"
+            IMPLEMENTATION [bool]: Result
+        IMPLEMENTATION [METHOD]: exists
+        CONTRACT
+            WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+    CAPABILITY: to sanitize a programmatic expression for use in Nabu annotation text
+        INPUT: "raw programmatic text"
+            IMPLEMENTATION [str]: text
+        OUTPUT: "cleaned text"
+            IMPLEMENTATION [str]: CleanedText
+        IMPLEMENTATION [METHOD]: sanitizeProgrammaticName
+    CAPABILITY: to retrieve first element in iterable efficiently
+        INPUT: "an Iterable"
+        OUTPUT: "result"
+            IMPLEMENTATION [Optional]: Result
+        IMPLEMENTATION [METHOD]: first
+    CAPABILITY: to restore human name from camel notation
+        INPUT: "s"
+            IMPLEMENTATION [str]: s
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: unCamel
+        CONTRACT
+            WHEN [PRE "s startswith"]: ESCAPE [DONE]
+            WHEN [PRE "in s"]: ESCAPE [DONE]
+    CAPABILITY: to restore doc date
+        INPUT: "date Number"
+            IMPLEMENTATION [Optional]: dateNumber
+        OUTPUT: "result"
+            IMPLEMENTATION [Optional]: Result
+        IMPLEMENTATION [METHOD]: restoreDocDate
+        CONTRACT
+            WHEN [PRE "not date Number"]: ESCAPE [DONE]
+    CAPABILITY: to remove excessive quote layers from string
+        INPUT: "s"
+            IMPLEMENTATION [str]: s
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: unquote
+        CONTRACT
+            WHEN [PRE "not s"]: ESCAPE [DONE]
+    CAPABILITY: to remove excessive bracket layers from string
+        INPUT: "s"
+            IMPLEMENTATION [str]: s
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: unbracket
+        CONTRACT
+            WHEN [PRE "not s"]: ESCAPE [DONE]
+            WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+    CAPABILITY: to quote if
+        INPUT: "s"
+            IMPLEMENTATION [str]: s
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: quoteIf
+        CONTRACT
+            WHEN [PRE "not in s"]: ESCAPE [DONE]
+            WHEN [PRE "s startswith not endswith of s s 0"]: ESCAPE [DONE]
+    CAPABILITY: to quote
+        INPUT: "s"
+            IMPLEMENTATION [str]: s
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: quote
+    CAPABILITY: to pluralize English word naturally
+        INPUT: "word"
+            IMPLEMENTATION [str]: word
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: pluralize
+        CONTRACT
+            WHEN [PRE "not word"]: ESCAPE [DONE]
+            WHEN [PRE "lower in _ IRREGULAR_ PLURALS"]: ESCAPE [DONE]
+            WHEN [PRE "lower endswith s x z ch sh"]: ESCAPE [DONE]
+            WHEN [PRE "lower endswith y and len lower greater than 1 and lower"]: ESCAPE [DONE]
+    END: CAPABILITY // to pluralize English word naturally
+    CAPABILITY: to parse doc date efficiently using Python facilities
+        INPUT: "date Str"
+            IMPLEMENTATION [str]: dateStr
+        OUTPUT: "result"
+            IMPLEMENTATION [int]: Result
+        IMPLEMENTATION [METHOD]: parseDocDate
+        CONTRACT
+            WHEN [PRE "Invalid date date Str"]: ERROR [ERROR]
+            WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+    CAPABILITY: to make name unique by enumeration
+        INPUT: "name"
+            IMPLEMENTATION [str]: name
+        INPUT: "other Names"
+            IMPLEMENTATION [Iterable]: otherNames
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: makeUnique
+        CONTRACT
+            WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+    CAPABILITY: to make bilingual name
+        INPUT: "name"
+            IMPLEMENTATION [Any]: name
+        INPUT: "native Name"
+            IMPLEMENTATION [Any]: nativeName
+        INPUT [OPT ""]: "separator"
+            IMPLEMENTATION [str]: separator
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: makeBilingualName
+        CONTRACT
+            WHEN [PRE "not native Name"]: ESCAPE [DONE]
+    END: CAPABILITY // to make bilingual name
+    CAPABILITY: to iterate up network hierarchy that supports back-reference
+        INPUT: "node"
+            IMPLEMENTATION [Any]: node
+        INPUT: "to EXPAND owners"
+            IMPLEMENTATION [Callable]: getOwners
+        OUTPUT: "owners"
+            IMPLEMENTATION [Iterator]: Owners
+        IMPLEMENTATION [METHOD]: iterUps
+    CAPABILITY: to iterate up hierarchy that supports back-reference
+        INPUT: "node"
+            IMPLEMENTATION [Any]: node
+        INPUT: "to get owner"
+            IMPLEMENTATION [Callable]: getOwner
+        OUTPUT: "owner"
+            IMPLEMENTATION [Iterator]: Owner
+        IMPLEMENTATION [METHOD]: iterUp
+    CAPABILITY: to find first string occurrence in iterable case-insensitive
+        INPUT: "where"
+        INPUT: "target"
+            IMPLEMENTATION [str]: target
+        OUTPUT: "result"
+        IMPLEMENTATION [METHOD]: findNoCase
+    CAPABILITY: to find first occurrence produced by iterable
+        INPUT: "where"
+            IMPLEMENTATION [Iterable]: where
+        INPUT: "to compare with object"
+            IMPLEMENTATION [Callable]: cmp
+        OUTPUT: "result"
+            IMPLEMENTATION [Any]: Result
+        IMPLEMENTATION [METHOD]: findBehind
+        CONTRACT
+            WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+    CAPABILITY: to find first occurrence position in iterable
+        INPUT: "where"
+            IMPLEMENTATION [Iterable]: where
+        INPUT: "to compare with object"
+            IMPLEMENTATION [Callable]: cmp
+        OUTPUT: "result"
+            IMPLEMENTATION [int]: Result
+        IMPLEMENTATION [METHOD]: findIndex
+        CONTRACT
+            WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+    CAPABILITY: to find first occurrence in nested iterable
+        INPUT: "where"
+            IMPLEMENTATION [Iterable]: where
+        INPUT: "to get inner"
+            IMPLEMENTATION [Callable]: getInner
+        INPUT: "to compare with object"
+            IMPLEMENTATION [Callable]: cmp
+        OUTPUT: "result"
+            IMPLEMENTATION [Any]: Result
+        IMPLEMENTATION [METHOD]: findNested
+        CONTRACT
+            WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+    END: CAPABILITY // to find first occurrence in nested iterable
+    CAPABILITY: to find first occurrence in iterable
+        INPUT: "where"
+            IMPLEMENTATION [Iterable]: where
+        INPUT: "to compare with object"
+            IMPLEMENTATION [Callable]: cmp
+        OUTPUT: "result"
+            IMPLEMENTATION [Any]: Result
+        IMPLEMENTATION [METHOD]: find
+        CONTRACT
+            WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+    CAPABILITY: to find first True object among two
+        INPUT: "first"
+            IMPLEMENTATION [Any]: first
+        INPUT: "second"
+            IMPLEMENTATION [Any]: second
+        OUTPUT: "result"
+        IMPLEMENTATION [METHOD]: firstValid
+    CAPABILITY: to count occurrences in iterable
+        INPUT: "where"
+            IMPLEMENTATION [Iterable]: where
+        INPUT: "to compare with object"
+            IMPLEMENTATION [Callable]: cmp
+        OUTPUT: "result"
+            IMPLEMENTATION [int]: Result
+        IMPLEMENTATION [METHOD]: count
+    CAPABILITY: to concatenate adjacent modifiers with separator if not null
+        INPUT: "items"
+            IMPLEMENTATION [Iterable]: items
+        INPUT [OPT ";"]: "sep"
+            IMPLEMENTATION [str]: sep
+        OUTPUT: "result"
+            IMPLEMENTATION [Optional]: Result
+        IMPLEMENTATION [METHOD]: concatModifiers
+        CONTRACT
+            WHEN [PRE "not result"]: ESCAPE [DONE]
+    CAPABILITY: to clean end of string
+        INPUT: "s"
+            IMPLEMENTATION [str]: s
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: cleanEnd
+        CONTRACT
+            WHEN [PRE "not matched"]: ESCAPE [DONE]
+    CAPABILITY: to capitalize first words in name leaving rest of name intact
+        INPUT: "name"
+            IMPLEMENTATION [str]: name
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: capName
+    CAPABILITY: to capitalize all words in name leaving rest of name intact
+        INPUT: "name"
+            IMPLEMENTATION [str]: name
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: upName
+    CAPABILITY: to camel
+        INPUT: "s"
+            IMPLEMENTATION [str]: s
+        INPUT [OPT "True"]: "is Cap First"
+            IMPLEMENTATION [bool]: isCapFirst
+        OUTPUT: "result"
+            IMPLEMENTATION [str]: Result
+        IMPLEMENTATION [METHOD]: toCamel
+        CONTRACT
+            WHEN [PRE "not s"]: ESCAPE [DONE]
+END: PRODUCT // Utilities Package
+

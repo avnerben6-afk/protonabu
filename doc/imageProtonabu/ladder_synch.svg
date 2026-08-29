@@ -1,0 +1,124 @@
+<svg height="508" width="794" name="" xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+            <path d="M 0,0 L 10,5 L 0,10 L 3,5 Z" style="stroke:Red; fill:Red; stroke-width:1" />
+        </marker>
+    </defs>
+       <!-- Actor -->
+<rect width="194" height="35" x="50" y="40" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="194" height="35" x="54" y="36" rx="0" ry="0" fill="#f0f8ff" stroke="#000080" stroke-width="1" />
+<text x="59" y="52" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">
+	<tspan xml:space="preserve" x="59" y="52" dx="14" dy="0.0em">Software Development</tspan>
+	<tspan xml:space="preserve" x="59" y="52" dx="56" dy="1.2em">Guidelines</tspan>
+	<tspan class="nabu-help-icon" data-help-text="&lt;p&gt;
+    &lt;span class=&quot;MinorTitle&quot;&gt;Highlights: &lt;/span&gt;&lt;span class=&quot;BodyText&quot;&gt;Capabilities: 2. 
+&lt;/span&gt;
+&lt;/p&gt;" onclick="var e = arguments[0] || window.event; if(e) { e.stopPropagation(); e.preventDefault(); } var popup = window.showHelpPopup || (window.parent &amp;&amp; window.parent.showHelpPopup); if(popup) { popup(this.getAttribute('data-help-text'), e?e.clientX:100, e?e.clientY:100); }" cursor="pointer" fill="#007BFF" font-weight="bold"> ?</tspan>
+</text>
+<!-- LifeLine -->
+<rect width="3" height="417" x="150" y="72" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="3" height="417" x="151" y="71" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Actor -->
+<rect width="131" height="22" x="298" y="40" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="131" height="22" x="302" y="36" rx="0" ry="0" fill="#f0f8ff" stroke="#000080" stroke-width="1" />
+<text x="307" y="52" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">
+	<tspan xml:space="preserve" x="307" y="52" dx="14" dy="0.0em">Client Liaison</tspan>
+	<tspan class="nabu-help-icon" data-help-text="&lt;p&gt;
+    &lt;span class=&quot;MinorTitle&quot;&gt;Highlights: &lt;/span&gt;&lt;span class=&quot;BodyText&quot;&gt;Capabilities: 2. 
+&lt;/span&gt;
+&lt;/p&gt;" onclick="var e = arguments[0] || window.event; if(e) { e.stopPropagation(); e.preventDefault(); } var popup = window.showHelpPopup || (window.parent &amp;&amp; window.parent.showHelpPopup); if(popup) { popup(this.getAttribute('data-help-text'), e?e.clientX:100, e?e.clientY:100); }" cursor="pointer" fill="#007BFF" font-weight="bold"> ?</tspan>
+</text>
+<!-- LifeLine -->
+<rect width="3" height="430" x="366" y="59" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="3" height="430" x="367" y="58" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Actor -->
+<rect width="90" height="22" x="505" y="40" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="90" height="22" x="509" y="36" rx="0" ry="0" fill="#f0f8ff" stroke="#000080" stroke-width="1" />
+<text x="514" y="52" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">
+	<tspan xml:space="preserve" x="514" y="52" dx="14" dy="0.0em">Analyst</tspan>
+	<tspan class="nabu-help-icon" data-help-text="&lt;p&gt;
+    &lt;span class=&quot;MinorTitle&quot;&gt;Highlights: &lt;/span&gt;&lt;span class=&quot;BodyText&quot;&gt;Capabilities: 4. 
+&lt;/span&gt;
+&lt;/p&gt;" onclick="var e = arguments[0] || window.event; if(e) { e.stopPropagation(); e.preventDefault(); } var popup = window.showHelpPopup || (window.parent &amp;&amp; window.parent.showHelpPopup); if(popup) { popup(this.getAttribute('data-help-text'), e?e.clientX:100, e?e.clientY:100); }" cursor="pointer" fill="#007BFF" font-weight="bold"> ?</tspan>
+</text>
+<!-- LifeLine -->
+<rect width="3" height="430" x="553" y="59" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="3" height="430" x="554" y="58" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Message -->
+<line x1="22" y1="104" x2="144" y2="104" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<rect width="119" height="10" x="27" y="89" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="27" y="99" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to develop software</text>
+<!-- Activation -->
+<rect width="14" height="382" x="144" y="105" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="382" x="145" y="104" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Message -->
+<polyline points="159,126 199,126 201,128 201,148 199,150 166,150" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" fill="none" />
+<rect width="161" height="10" x="165" y="111" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="165" y="121" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to define the requirements</text>
+<!-- Activation -->
+<rect width="14" height="338" x="151" y="147" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="338" x="152" y="146" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Message -->
+<line x1="167" y1="172" x2="378" y2="172" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<rect width="148" height="10" x="172" y="157" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="172" y="167" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to understand the needs</text>
+<!-- NonBlockingActivation -->
+<polygon points="378,173 393,172 393,476 390,472 388,473 386,469 383,470 381,466 378,467" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<polygon points="379,172 393,172 393,476 390,472 388,473 386,469 383,470 381,466 379,467" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Message -->
+<line x1="167" y1="210" x2="547" y2="210" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<rect width="179" height="10" x="172" y="195" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="172" y="205" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to model the problem domain</text>
+<!-- Activation -->
+<rect width="14" height="272" x="547" y="211" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="272" x="548" y="210" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Message -->
+<polyline points="562,232 602,232 604,234 604,254 602,256 569,256" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" fill="none" />
+<rect width="212" height="10" x="568" y="217" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="568" y="227" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to make requirements out of needs</text>
+<!-- Activation -->
+<rect width="14" height="228" x="554" y="253" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="228" x="555" y="252" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="71" x="555" y="252" rx="0" ry="0" fill="White" stroke="#5e0000" stroke-width="1" />
+<line x1="556" y1="253" x2="556" y2="321" stroke="Red" stroke-width="1" stroke-dasharray="4,3"  />
+<!-- Message -->
+<text class="visually-hidden">rpt: </text>
+<line x1="555" y1="278" x2="375" y2="278" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<polyline points="571,323 574,320 574,281" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<polyline points="574,281 571,278 568,278" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<line x1="555" y1="278" x2="568" y2="278" stroke="Red" stroke-width="1" stroke-dasharray="none"  />
+<!-- Message -->
+<line x1="555" y1="278" x2="375" y2="278" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<rect width="169" height="10" x="376" y="263" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="376" y="273" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">arg: to TRAVERSE the needs</text>
+<!-- Activation -->
+<rect width="14" height="22" x="360" y="279" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="22" x="361" y="278" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Result -->
+<rect width="132" height="9" x="418" y="285" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="418" y="294" xml:space="preserve" font-size="11px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">iterator in Client Liaison</text>
+<line x1="375" y1="299" x2="554" y2="299" stroke="Red" stroke-width="1" stroke-dasharray="4,3"  />
+<polyline points="569,323 609,323 611,325 611,345 609,347 576,347" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" fill="none" />
+<ellipse cx="590" cy="328" ry="5" rx="10" stroke="Red" stroke-width="1" fill="none" />
+<line x1="592" y1="332" x2="595" y2="332" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" />
+<rect width="96" height="10" x="575" y="308" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="575" y="318" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to process need</text>
+<!-- Activation -->
+<rect width="14" height="43" x="561" y="344" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="43" x="562" y="343" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Result -->
+<rect width="128" height="9" x="581" y="371" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="581" y="380" xml:space="preserve" font-size="11px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Candidate requirement</text>
+<polyline points="576,382 616,382 618,384 618,404 616,406 567,406" stroke="Red" stroke-width="1" stroke-dasharray="4,3"  fill="none" />
+<!-- Message -->
+<polyline points="569,431 609,431 611,433 611,453 609,455 576,455" stroke="Red" stroke-width="1" stroke-dasharray="none" marker-end="url(#arrow)" fill="none" />
+<rect width="170" height="10" x="575" y="416" rx="0" ry="0" fill="White" stroke="White" stroke-width="2" />
+<text x="575" y="426" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="light" font-style="normal" fill="Black">to invalidate need collection</text>
+<!-- Activation -->
+<rect width="14" height="27" x="561" y="452" rx="0" ry="0" fill="#5e0000" stroke="#5e0000" stroke-width="1" />
+<rect width="14" height="27" x="562" y="451" rx="0" ry="0" fill="#ffffe0" stroke="#5e0000" stroke-width="1" />
+<!-- Result -->
+<line x1="393" y1="476" x2="561" y2="476" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="393" y1="476" x2="561" y2="476" stroke="Red" stroke-width="1" stroke-dasharray="4,3"  />
+</svg>

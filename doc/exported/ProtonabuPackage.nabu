@@ -1,0 +1,289 @@
+PRODUCT: Protonabu Package
+    IMPLEMENTATION [PACKAGE]: ProtonabuPackage
+        NAMESPACE: ProtonabuPackage
+
+    PART: Tokenizer Interface
+        IMPLEMENTATION: ITokenizer
+        CAPABILITY: to parse string into tokens
+            INPUT: "string to parse"
+                IMPLEMENTATION [str]: s
+            INPUT [OPT "TRUE"]: "parse all characters"
+                IMPLEMENTATION [bool]: parseAll
+            OUTPUT: "sequence of token strings"
+                IMPLEMENTATION [Sequence]: SeqOfTokenStrings
+            IMPLEMENTATION [METHOD]: parseString
+    END: PART // Tokenizer Interface
+
+    PART: Token List Iterator
+        IMPLEMENTATION: TokenListIterator
+        CAPABILITY: to translate Token List Iterator to string removing quotes
+            OUTPUT: "result"
+            OUTPUT: "string"
+                IMPLEMENTATION [str]: String
+            IMPLEMENTATION [METHOD]: unquote
+            CONTRACT
+                WHEN [PRE "not tokens"]: ESCAPE [DONE]
+                WHEN [PRE "not tokens"]: ESCAPE [DONE]
+        CAPABILITY: to translate Token List Iterator to string as is
+            OUTPUT: "result"
+                IMPLEMENTATION [str]: Result
+            IMPLEMENTATION [METHOD]: __str__
+        CAPABILITY: to tell if Token List Iterator is at end
+            OUTPUT: "result"
+                IMPLEMENTATION [bool]: Result
+            IMPLEMENTATION [METHOD]: atEnd
+        CAPABILITY: to INITIALIZE Token List Iterator
+            INPUT: "tokens"
+                IMPLEMENTATION [Iterable]: tokens
+            INPUT [OPT "None"]: "error message title"
+                IMPLEMENTATION [Optional]: titleForErrorMessage
+            IMPLEMENTATION [METHOD]: __init__
+            CONTRACT
+                WHEN [PRE "Missing title For Error Message"]: ERROR [ERROR]
+        CAPABILITY: to EXTRACT next token losslessly
+            OUTPUT: "string token"
+                IMPLEMENTATION [str]: StrToken
+            IMPLEMENTATION [METHOD]: __next__
+    END: PART // Token List Iterator
+
+    PART: Raw Fact
+        IMPLEMENTATION: RawFact
+        CAPABILITY: to restore Labeled Fact to one or more Fact lines
+            INPUT: "is First indicator"
+                IMPLEMENTATION [bool]: isFirst
+            OUTPUT: "List of fact lines"
+                IMPLEMENTATION [ORDERED]: ListOfFactLines
+            IMPLEMENTATION [METHOD]: toCompositeFact
+            CONTRACT
+                WHEN [POST "Ran out of instances"]: ESCAPE [EXHAUSTED]
+        CAPABILITY: to INITIALIZE Raw Fact
+            INPUT: "label"
+                IMPLEMENTATION [Optional]: label
+            INPUT [OPT "None"]: "label modifiers"
+                IMPLEMENTATION [Optional]: labelModifiers
+            INPUT [OPT "None"]: "argument"
+                IMPLEMENTATION [Optional]: arg
+            INPUT [OPT "None"]: "argument modifiers"
+                IMPLEMENTATION [Optional]: argModifiers
+            INPUT [OPT "None"]: "edit directive"
+                IMPLEMENTATION [Optional]: editDirective
+            IMPLEMENTATION [METHOD]: __init__
+        END: CAPABILITY // to INITIALIZE Raw Fact
+    END: PART // Raw Fact
+
+    PART: Protonabu Configurator
+        STEREOTYPE: SINGLETON
+        IMPLEMENTATION: ProtonabuConfigurator
+        CAPABILITY: to set configuration value
+            INPUT: "section"
+                IMPLEMENTATION [str]: section
+            INPUT: "key"
+                IMPLEMENTATION [str]: key
+            INPUT: "value"
+                IMPLEMENTATION [Any]: value
+            IMPLEMENTATION [METHOD]: set
+        CAPABILITY: to load configuration from JSON file
+            INPUT: "file path"
+                IMPLEMENTATION [Path]: filePath
+            OUTPUT: "success indicator"
+                IMPLEMENTATION [bool]: SuccessIndicator
+            IMPLEMENTATION [METHOD]: load
+            CONTRACT
+                WHEN [PRE "not path exists"]: ESCAPE [DONE]
+        CAPABILITY: to get configuration value
+            INPUT: "section"
+                IMPLEMENTATION [str]: section
+            INPUT: "key"
+                IMPLEMENTATION [str]: key
+            INPUT [OPT "NONE"]: "default value"
+                IMPLEMENTATION [Any]: default
+            OUTPUT: "value or default"
+                IMPLEMENTATION [Any]: ValueOrDefault
+            IMPLEMENTATION [METHOD]: get
+            CONTRACT
+                WHEN [PRE "section not in self _data"]: ESCAPE [DONE]
+                WHEN [PRE "not isinstance sec dict"]: ESCAPE [DONE]
+        END: CAPABILITY // to get configuration value
+        CAPABILITY: to get Chrome or Chromium executable path
+            OUTPUT: "executable path"
+                IMPLEMENTATION [Optional]: ExecutablePath
+            IMPLEMENTATION [METHOD]: getChromiumPath
+            CONTRACT
+                WHEN [PRE "configured and os path exists configured"]: ESCAPE [DONE]
+                WHEN [PRE "env_path and os path exists env_path"]: ESCAPE [DONE]
+        CAPABILITY: to INITIALIZE Protonabu Configurator
+            INPUT [OPT "NONE"]: "config Path"
+                IMPLEMENTATION [Optional]: configPath
+            IMPLEMENTATION [METHOD]: __init__
+    END: PART // Protonabu Configurator
+
+    PART: Fact Stream
+        NESTED: Protonabu Snippet
+        IMPLEMENTATION: ISource
+        CAPABILITY: to close <SUBSTITUTE> Fact Stream
+            IMPLEMENTATION [METHOD]: close
+        CAPABILITY: to append line to <SUBSTITUTE> Fact Stream
+            INPUT: "fact"
+                IMPLEMENTATION [str]: fact
+            IMPLEMENTATION [METHOD]: add
+        CAPABILITY: to TRAVERSE <SUBSTITUTE> Fact Stream
+            OUTPUT: "Fact line iterator"
+                IMPLEMENTATION [Iterator]: FactLineIterator
+            IMPLEMENTATION [METHOD]: __iter__
+    END: PART // Fact Stream
+
+    PART: Protonabu Snippet
+        IMPLEMENTATION: ProtonabuSnippet
+        CAPABILITY: to INITIALIZE Protonabu Snippet
+            INPUT: "Fact Stream"
+                IMPLEMENTATION [ISource]: source
+            INPUT: "File name"
+                IMPLEMENTATION [str]: fileName
+            INPUT: "Is importing indication"
+                IMPLEMENTATION [bool]: isImporting
+            IMPLEMENTATION [METHOD]: __init__
+            CONTRACT
+                WHEN [PRE "Invalid snippet source"]: ERROR [ERROR]
+    END: PART // Protonabu Snippet
+
+    PART: Protonabu Schema
+        IMPLEMENTATION: ProtonabuSchema
+        CAPABILITY: to parse Protonabu syntax tree
+            INPUT: "file Name"
+            OUTPUT: "result"
+            IMPLEMENTATION [METHOD]: load
+        CAPABILITY: to dump Protonabu Schema
+            INPUT [OPT "None"]: "output stream"
+                IMPLEMENTATION [Optional]: outp
+            IMPLEMENTATION [METHOD]: dump
+        CAPABILITY: to INITIALIZE Protonabu Schema
+            INPUT: "protonabu snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: inp
+            INPUT [OPT "None"]: "additional tokenizer modules"
+                IMPLEMENTATION [Optional]: additionalTokenizerModules
+            IMPLEMENTATION [METHOD]: __init__
+    END: PART // Protonabu Schema
+
+    PART: Snippet Parser
+        IMPLEMENTATION: SnippetParser
+        CAPABILITY: to walk
+            IMPLEMENTATION [METHOD]: walk
+        CAPABILITY: to process tokenized composite Labeled Fact
+            IMPLEMENTATION [METHOD]: procTokenizedCompositeLabeledFact
+        CAPABILITY: to parse tokenized Labeled Fact source
+            INPUT: "Line Parser"
+                IMPLEMENTATION [ProtonabuParseDispatcher]: aLineParser
+            INPUT [OPT "NONE"]: "Progress Bar"
+                IMPLEMENTATION [Optional]: aProgressBar
+            IMPLEMENTATION [METHOD]: parseLines
+        CAPABILITY: to forget parsed-object deferred validation
+            INPUT: "object to stop validating"
+                IMPLEMENTATION [Any]: obj
+            IMPLEMENTATION [METHOD]: unregisterExitValidator
+        CAPABILITY: to end labeled-fact tokenization
+            INPUT: "line Data"
+                IMPLEMENTATION [TokenizedFact]: lineData
+            INPUT: "itr"
+                IMPLEMENTATION [Optional]: _
+            IMPLEMENTATION [METHOD]: parseEnd
+        CAPABILITY: to dump composite Labeled Fact for debug
+            INPUT [OPT "NONE"]: "output stream"
+            IMPLEMENTATION [METHOD]: dump
+        CAPABILITY: to defer parsed-object validation to fact-base completion
+            INPUT: "object to validate"
+                IMPLEMENTATION [Any]: obj
+            INPUT: "validator method"
+                IMPLEMENTATION [Callable]: validator
+            IMPLEMENTATION [METHOD]: registerExitValidator
+        CAPABILITY: to compile <SUBSTITUTE Snippet> Parser source
+            INPUT: "input labeld fact snippet"
+                IMPLEMENTATION [ProtonabuSnippet]: inp
+            INPUT [OPT "NONE"]: "a progress indicator"
+                IMPLEMENTATION [Optional]: progressBar
+            IMPLEMENTATION [METHOD]: compile
+        CAPABILITY: to INITIALIZE Snippet Parser
+            DESIGNATION: CONSTRUCTOR
+            INPUT: "schema"
+                IMPLEMENTATION [ProtonabuSchema]: schema
+            IMPLEMENTATION [METHOD]: __init__
+    END: PART // Snippet Parser
+
+    PART: Protonabu Parser
+        IMPLEMENTATION: ProtonabuParser
+        CAPABILITY: to make protonabu parser path name
+            INPUT: "file Name"
+                IMPLEMENTATION [Path]: fileName
+            OUTPUT: "result"
+                IMPLEMENTATION [Path]: Result
+            IMPLEMENTATION [METHOD]: makePathName
+            CONTRACT
+                WHEN [PRE "file Name is_absolute"]: ESCAPE [DONE]
+        CAPABILITY: to INITIALIZE Protonabu Parser
+            INPUT: "schema ready or source"
+                IMPLEMENTATION [ProtonabuSnippet]: schemaSourceAndTitle
+            INPUT [OPT "NONE"]: "home Folder"
+                IMPLEMENTATION [Optional]: homeFolder
+            IMPLEMENTATION [METHOD]: __init__
+        CAPABILITY: to compile <Protonabu> Parser source
+            INPUT: "input snippet or source"
+                IMPLEMENTATION [ProtonabuSnippet]: inp
+            INPUT [OPT "NONE"]: "progress bar"
+                IMPLEMENTATION [Optional]: progressBar
+            IMPLEMENTATION [METHOD]: compile
+    END: PART // Protonabu Parser
+
+    PART: Importing Protonabu Parser
+        IMPLEMENTATION: ImportingProtonabuParser
+        CAPABILITY: to parse <Importing> Protonabu Parser import immediate directive
+            INPUT: "line Data"
+                IMPLEMENTATION [TokenizedFact]: lineData
+            INPUT: "unused iterator"
+                IMPLEMENTATION [Optional]: _
+            IMPLEMENTATION [METHOD]: parseImportingDirective
+            CONTRACT
+                WHEN [PRE "Missing file name to import"]: ERROR [ERROR]
+                WHEN [PRE "File to import not found"]: ERROR [ERROR]
+                WHEN [PRE "path Name in self expanded Imports"]: ESCAPE [DONE]
+                WHEN [PRE "Parser has no active input snippet for importing"]: ERROR [ERROR]
+        END: CAPABILITY // to parse <Importing> Protonabu Parser import immediate directive
+        CAPABILITY: to INITIALIZE Importing Protonabu Parser
+            INPUT: "schema ready or source"
+                IMPLEMENTATION [ProtonabuSnippet]: schemaSourceAndTitle
+            INPUT [OPT "NONE"]: "home Folder"
+                IMPLEMENTATION [Optional]: homeFolder
+            IMPLEMENTATION [METHOD]: __init__
+    END: PART // Importing Protonabu Parser
+
+    PART: In Memory Fact Stream
+        IMPLEMENTATION: ProtonabuMemorySource
+        CAPABILITY: to INITIALIZE Protonabu Snippet source In Memory
+            INPUT [OPT "None"]: "Source lines"
+                IMPLEMENTATION [Optional]: source
+            IMPLEMENTATION [METHOD]: __init__
+
+    CAPABILITY: to create Protonabu Snippet source to file
+        INPUT: "path name"
+            IMPLEMENTATION [Path]: pathName
+        INPUT: "file name"
+            IMPLEMENTATION [str]: fileName
+        OUTPUT: "Protonabu Snippet"
+            IMPLEMENTATION [ProtonabuSnippet]: ProtonabuSnippet
+        IMPLEMENTATION [METHOD]: ProtonabuSnippetToFile
+    CAPABILITY: to create Protonabu Snippet from file
+        INPUT: "path name"
+            IMPLEMENTATION [Path]: pathName
+        INPUT [OPT "FALSE"]: "is importing"
+            IMPLEMENTATION [bool]: isImporting
+        OUTPUT: "Protonabu Snippet"
+            IMPLEMENTATION [ProtonabuSnippet]: ProtonabuSnippet
+        IMPLEMENTATION [METHOD]: ProtonabuSnippetFromFile
+    CAPABILITY: to create Protonabu Snippet In Memory
+        INPUT: "fact source"
+            IMPLEMENTATION [Iterable]: source
+        INPUT: "file name"
+            IMPLEMENTATION [str]: fileName
+        OUTPUT: "Protonabu Snippet"
+            IMPLEMENTATION [ProtonabuSnippet]: ProtonabuSnippet
+        IMPLEMENTATION [METHOD]: ProtonabuSnippetInMemory
+END: PRODUCT // Protonabu Package
+

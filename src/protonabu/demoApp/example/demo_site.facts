@@ -1,0 +1,101 @@
+// Educational Site Demo Script
+// Topic: Introduction to Protonabu
+// This file demonstrates the Educational Site Generator schema.
+// Usage: python -m nabu.protonabu.demoApp demo_site.facts <output_folder>
+
+BOOK: Introduction to Protonabu
+    AUTHOR: Avner Ben
+    VERSION: v1
+    DATE: "12-Aug-2026"
+    LOGO: "image/nabu_logo.svg"
+
+    CHAPTER: Getting Started
+        DESCRIPTOR: "Foundations of the Protonabu framework"
+
+        SECTION: What Is Protonabu
+            PREFIX: Intro
+            CROSS REFERENCE
+            PAGE: Overview
+                CAPTION: "A lightweight domain-specific language framework for Python"
+                HEADER: "Definition"
+                TEXT: "Protonabu is a framework for defining and parsing Domain-Specific Languages using a simple, readable fact-snippet notation."
+                HEADER: "Why Protonabu"
+                TEXT: "Traditional parsers require grammar files, code generation, or complex setup. Protonabu uses plain text schema files and a simple Python dispatch mechanism."
+                EMPHASIZED: "In Protonabu, the grammar IS the documentation."
+                KEYWORD [Defined]: Protonabu
+                KEYWORD [Defined]: DSL
+
+            PAGE: Core Concepts
+                CAPTION: "The three pillars: Schema, Snippet, and Parser"
+                PREFIX: Core
+                ROW
+                    CELL
+                        HEADER: "Schema"
+                        TEXT: "A Schema defines the grammar of your DSL as a hierarchy of labeled facts. It specifies which labels are allowed, in what order, and with what argument types."
+                    CELL
+                        HEADER: "Snippet"
+                        TEXT: "A Snippet is a sequence of labeled facts (your actual DSL content). It can come from a file, a string in memory, or a generated stream."
+                    CELL
+                        HEADER: "Parser"
+                        TEXT: "A Parser subclasses ProtonabuParser and implements one method per schema label. Protonabu dispatches each labeled fact to the right method automatically."
+                KEYWORD [Defined]: Schema
+                KEYWORD [Defined]: Snippet
+                KEYWORD [Defined]: Parser
+                CONTINUATION
+                    HEADER: "The Parsing Stack"
+                    TEXT: "As Protonabu parses a snippet, it maintains a design path - a stack of parent objects at the current nesting level. Each handler receives this path."
+                    CODE: "fact.designPath[-1][1]"
+                    CAPTION LABEL: "The immediate parent object in the design path"
+                    KEYWORD [Explained]: "design path"
+
+            PAGE: A Minimal Example
+                CAPTION: "Hello Protonabu in a few lines"
+                HEADER: "Schema: hello.facts"
+                CODE: "GREETING: quotedName / LANGUAGE: quotedName"
+                HEADER: "Parser: hello.py"
+                CODE: "class HelloParser(ProtonabuParser): def parseGreeting(self, fact)"
+                TEXT: "Call fact.getArgumentAsText(isToUnquote=True) in the handler to retrieve the argument value as a plain string."
+                KEYWORD [Referenced]: ProtonabuParser
+                KEYWORD [Referenced]: getArgumentAsText
+
+        SECTION: Schema Definition
+            PREFIX: Schema
+            PAGE: Labels and Arguments
+                CAPTION: "How to define labels and argument types in a schema"
+                HEADER: "Labels"
+                TEXT: "Every line in a schema defines a label name. Labels can be arranged in a hierarchy using indentation."
+                HEADER: "Argument Types"
+                TEXT: "After the label name, add a colon and a type name such as quotedName to specify that the label takes a text argument. Append ? to make the argument optional."
+                CODE: "BOOK: quotedName / AUTHOR: quotedName? / CHAPTER: quotedName"
+                KEYWORD [Defined]: "label"
+                KEYWORD [Defined]: "argument type"
+
+            PAGE: Label Modifiers
+                CAPTION: "Adding structured modifiers to labels"
+                TEXT: "A label can carry a modifier enclosed in square brackets before the argument. This is useful for typed annotations."
+                CODE: "KEYWORD [quotedName]: quotedName"
+                TEXT: "Here the modifier (e.g. Defined or Referenced) classifies the argument (the keyword text)."
+                EMPHASIZED: "Modifiers are parsed via getFirstLabelModifierAsText() in the handler."
+                KEYWORD [Defined]: "label modifier"
+                KEYWORD [Referenced]: getFirstLabelModifierAsText
+
+    CHAPTER: Advanced Usage
+        DESCRIPTOR: "Import, recursion, and real-world patterns"
+
+        SECTION: Importing Snippets
+            PAGE: The IMPORTING Directive
+                CAPTION: "How to merge snippets at parse time"
+                TEXT: "Protonabu supports the IMPORTING immediate directive to insert the contents of another snippet file at a specific rank level during parsing."
+                TEXT: "This enables modular Protonabu scripts - for example, a shared library of common definitions."
+                KEYWORD [Defined]: IMPORTING
+                KEYWORD [Referenced]: "immediate directive"
+
+        SECTION: Recursive Schemas
+            CROSS REFERENCE
+            PAGE: Recursive Labels
+                CAPTION: "Defining recursive grammar rules with SAME-AS"
+                TEXT: "When a label can contain itself (e.g. REQUIRES nesting REQUIRES), use the __DITTO__ pseudo-label to reference an already-defined label in the schema."
+                CODE: "REQUIRES: quotedName / nested / __DITTO__: PRODUCT / USE CASE / REQUIRES"
+                EMPHASIZED: "This avoids infinite schema expansion while allowing arbitrarily deep nesting."
+                KEYWORD [Defined]: "recursive schema"
+                KEYWORD [Defined]: "__DITTO__"

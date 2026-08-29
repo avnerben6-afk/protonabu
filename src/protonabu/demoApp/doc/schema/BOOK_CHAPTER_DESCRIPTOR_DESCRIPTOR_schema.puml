@@ -1,0 +1,3 @@
+@startebnf
+DESCRIPTOR = ["quotedText"] ;
+@endebnf

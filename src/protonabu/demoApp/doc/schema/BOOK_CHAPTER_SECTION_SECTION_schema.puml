@@ -1,0 +1,3 @@
+@startebnf
+SECTION = "quotedName" , { DESCRIPTOR | PREFIX | CROSS_REFERENCE | PAGE } ;
+@endebnf

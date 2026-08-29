@@ -1,0 +1,3 @@
+@startebnf
+BOOK = "quotedName" , { AUTHOR | VERSION | DATE | LOGO | CHAPTER } ;
+@endebnf

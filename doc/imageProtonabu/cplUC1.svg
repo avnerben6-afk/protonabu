@@ -1,0 +1,2908 @@
+<svg height="1118" width="743" name="" xmlns="http://www.w3.org/2000/svg">
+
+<style>
+    .collapsible-trigger { cursor: pointer; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; transition: fill 0.2s; }
+    .collapsible-trigger:hover { fill: Red; font-weight: bold; }
+    .highlighted-node { fill: Maroon !important; font-weight: bold !important; font-style: normal !important; }
+    .highlighted-bg { fill: LemonChiffon !important; }
+</style>
+<script>
+//<![CDATA[
+const NABU_RULES = {
+    "prefixReplacement": {
+        "global": {
+            "arg:": { "replacement": "argument:" },
+            "esc:": { "replacement": "escape:" },
+            "sink:": { "replacement": "sink:" },
+            "source:": { "replacement": "source:" },
+            "opt\\b": { "replacement": "optionally" },
+            "rpt\\b": { "replacement": "repeated" },
+            "iter\\b": { "replacement": "iterative" },
+            "alt\\s*#?\\s*(\\d+)\\s*/\\s*(\\d+)": { "replacement": "alternative number $1 out of $2" },
+            "\\*\\s*(\\d+)": { "replacement": "occurs $1 times" },
+            "\\*": { "replacement": "occurs multiple times" }
+        }
+    },
+    "nameAdornment": {
+        "Requirement Ladder": {
+            "dashedArc": {
+                "prefix": "returns ",
+                "postfix": "",
+                "regex": "^(?!.*esc:)(?!.*escape)(?!.*sink:)(?!.*source:)(.*)$"
+            },
+            "requiresNonGraphviz": {
+                "regex": "^to\\s+",
+                "replacement": "requires to "
+            },
+            "requiresGraphvizEdge": {
+                "regex": "^(?!.*requires)(?!.*to\\s+)(?!.*escape)(.*)$",
+                "replacement": "requires $1"
+            },
+            "escapeArc": {
+                "prefix": "escape ",
+                "postfix": ""
+            },
+            "foreignTraversal": {
+                "regex": "to\\s*\\([^\\)]*\\)",
+                "replacement": "Foreign traversal hidden"
+            }
+        },
+        "Requirement Tree": {
+            "requiresNonGraphviz": {
+                "regex": "^to\\s+",
+                "replacement": "requires to "
+            },
+            "requiresGraphvizEdge": {
+                "regex": "^(?!.*requires)(?!.*to\\s+)(?!.*escape)(.*)$",
+                "replacement": "requires $1"
+            },
+            "backwardArc": {
+                "prefix": "back and requires ",
+                "postfix": ""
+            },
+            "escapeArc": {
+                "prefix": "escape ",
+                "postfix": ""
+            },
+            "foreignTraversal": {
+                "regex": "to\\s*\\([^\\)]*\\)",
+                "replacement": "Foreign traversal hidden"
+            }
+        },
+        "Breakdown Diagram": {
+            "requiresNonGraphviz": {
+                "regex": "^to\\s+",
+                "replacement": "requires to "
+            }
+        },
+        "Coupling Chart": {
+            "rightCoupling": {
+                "prefix": "is coupled by ",
+                "postfix": ", with:"
+            },
+            "leftCoupling": {
+                "prefix": "requires ",
+                "postfix": ""
+            },
+            "ellipsis": {
+                "regex": "(?:\\(|\\s|^)\\.\\.\\.(?:\\)|\\s|$)",
+                "replacement": "No couplings inside"
+            }
+        }
+    }
+};
+
+/**
+ * Module: Vectorgraphic Module
+ *  - Author: Avner Ben
+ *      - Created: 15-May-2026
+ *  - Generator: Antigravity (Gemini 3.1 Flash)
+ *      - Generated: 15-May-2026
+ *  - Generator: Antigravity (Claude Opus 4.5)
+ *      - Improved: 14-June-2026
+ *  - Purpose: Unknown
+ */
+
+/**
+ * to toggle Visual Collapsible Group
+ * - Input: Trigger element
+ * - Input: Is animating flag
+ */
+function toggle(el, isAnimating) {
+    var triggerGroup = el.closest('g');
+    var childrenGroups = [];
+
+    // [Rpt]: to climb DOM tree until we locate the adjacent content groups
+    while (triggerGroup && triggerGroup.tagName.toLowerCase() === 'g') {
+        var sibling = triggerGroup.nextElementSibling;
+        var foundAny = false;
+        // [Rpt]: to check siblings for 'g' tags
+        while (sibling) {
+            // [Opt]: to handle tag Name of sibling equals = g
+            if (sibling.tagName.toLowerCase() === 'g') {
+                childrenGroups.push(sibling);
+                foundAny = true;
+            }
+            sibling = sibling.nextElementSibling;
+        }
+        // [Esc]: to stop climbing if we found sibling groups
+        if (foundAny) break;
+        // to climb out if trapped in an inner wrapper
+        triggerGroup = triggerGroup.parentElement;
+        // [Esc]: to stop at major structural graph IDs
+        if (triggerGroup && triggerGroup.id && triggerGroup.id.indexOf('graph') !== -1) {
+            break;
+        }
+    }
+
+    var hasChildrenGroup = (childrenGroups.length > 0);
+    var isHiding = false;
+
+    // [Alt "(hasChildrenGroup)"]: to apply when hasChildrenGroup
+    if (hasChildrenGroup) {
+        isHiding = (childrenGroups[0].style.display !== 'none');
+        // [Alt "not (hasChildrenGroup)"]: to apply when not (hasChildrenGroup
+    } else {
+        isHiding = (el.textContent === '-');
+    }
+
+    var newDisplay = isHiding ? 'none' : 'inline';
+    var newText = isHiding ? '+' : '-';
+
+    // [Opt]: to apply when hasChildrenGroup)
+    if (hasChildrenGroup) {
+        childrenGroups.forEach(function (group) {
+            // [Opt]: to handle is Hiding
+            if (isHiding) {
+                var nestedTriggers = group.querySelectorAll('.collapsible-trigger');
+                nestedTriggers.forEach(function (trigger) {
+                    // [Opt]: to handle text Content of trigger equals = -
+                    if (trigger.textContent === '-') {
+                        toggle(trigger, isAnimating);
+                    }
+                });
+            }
+            group.style.display = newDisplay;
+        });
+    }
+
+    el.textContent = newText;
+
+    var targetsStr = el.getAttribute('data-targets');
+    // [Opt]: to apply when targetsStr) {
+    if (targetsStr) {
+        var targetIds = targetsStr.split(',');
+        targetIds.forEach(function (id) {
+            var target = document.getElementById(id);
+            // [Opt]: to handle target
+            if (target) {
+                var count = parseInt(target.getAttribute('data-ref-count') || '1');
+                count += (isHiding ? -1 : 1);
+                target.setAttribute('data-ref-count', count);
+
+                // [Alt]: to handle !is Animating !is Hiding
+                if (!isAnimating && !isHiding) {
+                    target.style.display = (count > 0) ? 'inline' : 'none';
+                    // [Alt]: to handle !is Animating is Hiding
+                } else if (!isAnimating && isHiding) {
+                    target.style.display = (count > 0) ? 'inline' : 'none';
+                }
+            }
+        });
+    }
+}
+
+var animationInterval = 4000;
+var animationTimer = null;
+var animatedNodes = [];
+var animatedNodeData = []; // Pre-extracted node text and metadata
+var currentAnimationIndex = -1;
+var currentAnimationSequenceId = 0;
+var isAnimationActive = false;
+var baselineDisplayStates = []; // to store baseline visibility
+
+// [Scan]: to speech-sequence guard state (robust platform-bug bypass)
+var nabuLatestSpeechSequenceId = -1;
+var nabuLatestSpeechToken = 0;
+var nabuAnimationBlocked = false;
+var nabuActiveSpeechUtterance = null;
+
+// [Scan]: to event listeners for Window SAPI cleanup have been intentionally disabled,
+// [Scan]: to as `cancel()` causes a fatal lockup on Windows 11 Chrome/Edge audio drivers.
+// [Scan]: to ensuring natural drain is required.
+
+// [Scan]: to ensure speech acts natively.
+document.addEventListener('change', function (e) {
+    // [Opt; Opt]: to handle target of e id of target of e equals = anim Speech !checked of target of e speech Synthesis of window | OPT; OPT=
+    if (e.target && e.target.id === 'animSpeech' && !e.target.checked) {
+        if (window.speechSynthesis) {
+            setTimeout(function () {
+                // [Opt]: to handle speaking of speech Synthesis of window pending of speech Synthesis of window
+                if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+                    // [Guard]: to do RENAME ME vectorGraphic 126 0000
+                    // [Esc Warning]: "err"
+                    try { window.speechSynthesis.cancel(); } catch (err) { }
+                }
+            }, 100);
+        }
+    }
+});
+
+/**
+ * to highlight Visual Node
+ * - Input: Node group element
+ * - Input: Highlight flag
+ */
+function highlightNode(nodeGroup, highlight) {
+    // [Esc]: !node Group
+    if (!nodeGroup) return;
+
+    var targetTexts = [];
+    var trigger = Array.from(nodeGroup.querySelectorAll('.collapsible-trigger')).find(function (t) {
+        return t.closest('.collapsible-group') === nodeGroup;
+    });
+    var isGraphviz = nodeGroup.classList.contains('node') || nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.node') !== null || nodeGroup.querySelector('.edge') !== null;
+
+    function markFallbackShape(activate) {
+        var shape = nodeGroup.querySelector('rect, polygon, polyline, path, circle, ellipse');
+        // [Esc]: to handle !shape
+        if (!shape) return;
+        // [Alt]: to handle activate
+        if (activate) {
+            if (!shape.hasAttribute('data-orig-stroke')) {
+                shape.setAttribute('data-orig-stroke', shape.getAttribute('stroke') || 'none');
+                shape.setAttribute('data-orig-stroke-width', shape.getAttribute('stroke-width') || '');
+            }
+            shape.setAttribute('stroke', 'Magenta');
+            shape.setAttribute('stroke-width', '3');
+            // [Alt]: to handle not activate
+        } else {
+            // [Alt]: to handle has Attribute of shape data-orig-stroke
+            if (shape.hasAttribute('data-orig-stroke')) {
+                var os = shape.getAttribute('data-orig-stroke');
+                if (os && os !== 'none') shape.setAttribute('stroke', os);
+                else shape.removeAttribute('stroke');
+                shape.removeAttribute('data-orig-stroke');
+                // [Alt]: to handle not has Attribute of shape data-orig-stroke
+            } else {
+                shape.removeAttribute('stroke');
+            }
+            // [Alt]: to handle has Attribute of shape data-orig-stroke-width
+            if (shape.hasAttribute('data-orig-stroke-width')) {
+                var ow = shape.getAttribute('data-orig-stroke-width');
+                if (ow) shape.setAttribute('stroke-width', ow);
+                else shape.removeAttribute('stroke-width');
+                shape.removeAttribute('data-orig-stroke-width');
+                // [Alt]: to handle not has Attribute of shape data-orig-stroke-width
+            } else {
+                shape.removeAttribute('stroke-width');
+            }
+        }
+    }
+
+    // [Esc]: is Graphviz
+    if (isGraphviz) {
+        // [Scan]: to support for Graphviz SVG structures (nested <g class="node"> contains multiple <text> tags)
+        targetTexts = Array.from(nodeGroup.querySelectorAll('text')).filter(function (t) {
+            return !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden');
+        });
+        // [Alt "not (isGraphviz)"]: to apply when not (isGraphviz
+    } else {
+        var directTexts = Array.from(nodeGroup.querySelectorAll('text')).filter(function (t) {
+            return t.closest('.collapsible-group') === nodeGroup && !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden') && !t.closest('.descriptor-cells');
+        });
+
+        targetTexts = targetTexts.concat(directTexts);
+
+        var isArc = isGraphviz || nodeGroup.querySelector('line') || nodeGroup.querySelector('path') || nodeGroup.querySelector('polygon') || nodeGroup.querySelector('polyline');
+
+        // [Scan]: to only absorb securely adjacent preceding singleton text/descriptors
+        var prev = nodeGroup.previousElementSibling;
+        // [Opt]: to handle length of target Texts equals = 0 prev
+        if (targetTexts.length === 0 && prev) {
+            // [Alt]: to handle tag Name of prev equals = g tag Name of prev equals = G contains of class List of prev descriptor-cells
+            if ((prev.tagName === 'g' || prev.tagName === 'G') && prev.classList.contains('descriptor-cells')) {
+                var texts = prev.querySelectorAll('text');
+                if (texts.length > 0) targetTexts = targetTexts.concat(Array.from(texts));
+                // [Alt]: to handle tag Name of prev equals = text tag Name of prev equals = TEXT
+            } else if (prev.tagName === 'text' || prev.tagName === 'TEXT') {
+                targetTexts.push(prev);
+            }
+            // [Opt; Rpt]: to handle length of target Texts equals = 0 is Arc prev tag Name of prev ! equals g tag Name of prev ! equals G | OPT; RPT=
+            if (targetTexts.length === 0 && isArc) {
+                while (prev && prev.tagName !== 'g' && prev.tagName !== 'G') {
+                    // [Opt]: to handle tag Name of prev equals = text tag Name of prev equals = TEXT
+                    if (prev.tagName === 'text' || prev.tagName === 'TEXT') {
+                        targetTexts.unshift(prev);
+                    }
+                    prev = prev.previousElementSibling;
+                }
+            }
+        }
+    }
+
+    // [Alt "(highlight)"]: to apply when highlight
+    if (highlight) {
+        // [Alt "(targetTexts.length > 0)"]: to apply when targetTexts present
+        if (targetTexts.length > 0) {
+            targetTexts.forEach(function (targetText) {
+                targetText.classList.add('highlighted-node');
+                targetText.style.fill = "Maroon";
+                if (!targetText.hasAttribute('data-orig-font-weight')) {
+                    targetText.setAttribute('data-orig-font-weight', targetText.getAttribute('font-weight') || '');
+                }
+                targetText.setAttribute("font-weight", "bold");
+                var bbox = targetText.getBBox();
+                if (bbox.width > 0 && bbox.height > 0) {
+                    var bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    bgRect.setAttribute("class", "highlight-bg");
+                    bgRect.setAttribute("x", bbox.x - 2);
+                    bgRect.setAttribute("y", bbox.y - 2);
+                    bgRect.setAttribute("width", bbox.width + 4);
+                    bgRect.setAttribute("height", bbox.height + 4);
+                    bgRect.setAttribute("fill", "lemonchiffon");
+                    bgRect.setAttribute("rx", "2");
+                    // [Scan]: to insert behind the text node
+                    targetText.parentNode.insertBefore(bgRect, targetText);
+                }
+            });
+
+            // [Opt]: to apply when targetTexts[0].scrollIntoView) {
+            if (targetTexts[0].scrollIntoView) {
+                var isArc = isGraphviz || nodeGroup.querySelector('line') || nodeGroup.querySelector('path') || nodeGroup.querySelector('polygon') || nodeGroup.querySelector('polyline');
+                var nodeToScroll = (isArc) ? targetTexts[targetTexts.length - 1] : targetTexts[0];
+                nodeToScroll.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            }
+            // [Alt "not (targetTexts.length > 0)"]: to apply when not (targetTexts present
+        } else {
+            // [Scan]: to apply graphical outline emphasis to native ellipsis/empty boxes that natively possess no text
+            var isEdge = isGraphviz && (nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.edge'));
+            if (!isEdge) {
+                markFallbackShape(true);
+            }
+        }
+        // [Opt]: to apply when isGraphviz && (nodeGroup.classList.contains('edge'
+        if (isGraphviz && (nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.edge'))) {
+            nodeGroup.querySelectorAll('path, polygon').forEach(function (p) {
+                if (!p.hasAttribute('data-orig-stroke')) {
+                    p.setAttribute('data-orig-stroke', p.getAttribute('stroke') || '');
+                }
+                if (!p.hasAttribute('data-orig-stroke-width')) {
+                    p.setAttribute('data-orig-stroke-width', p.getAttribute('stroke-width') || '');
+                }
+                p.setAttribute('stroke', 'Maroon');
+                p.setAttribute('stroke-width', '3');
+            });
+        }
+        // [Opt]: to highlight non-Graphviz wire chart arc elements (lines and polylines)
+        if (!isGraphviz) {
+            var arcElements = nodeGroup.querySelectorAll('line, polyline, path, polygon');
+            arcElements.forEach(function (el) {
+                // [Esc]: skip elements belonging to nested child collapsible groups
+                if (el.closest('.collapsible-group') !== nodeGroup) return;
+                var currentStroke = el.getAttribute('stroke') || '';
+                // [Esc]: skip eraser lines (White stroke) and shadow elements (Grey fill)
+                if (currentStroke === 'White' || currentStroke === 'Grey') return;
+                if (!el.hasAttribute('data-orig-stroke')) {
+                    el.setAttribute('data-orig-stroke', currentStroke);
+                }
+                if (!el.hasAttribute('data-orig-stroke-width')) {
+                    el.setAttribute('data-orig-stroke-width', el.getAttribute('stroke-width') || '');
+                }
+                el.setAttribute('stroke', 'Maroon');
+                el.setAttribute('stroke-width', '3');
+            });
+            // [Rpt]: to walk backwards through siblings to find source Wire Box title group
+            var prevSibling = nodeGroup.previousElementSibling;
+            while (prevSibling && prevSibling.classList && prevSibling.classList.contains('collapsible-group') && !prevSibling.querySelector(':scope > rect')) {
+                prevSibling = prevSibling.previousElementSibling;
+            }
+            if (prevSibling && prevSibling.classList && prevSibling.classList.contains('collapsible-group') && prevSibling.querySelector(':scope > rect')) {
+                var sourceRects = prevSibling.querySelectorAll(':scope > rect');
+                sourceRects.forEach(function (r) {
+                    var rs = r.getAttribute('stroke') || '';
+                    if (rs === 'Grey') return;
+                    if (!r.hasAttribute('data-orig-stroke-width')) {
+                        r.setAttribute('data-orig-stroke-width', r.getAttribute('stroke-width') || '');
+                    }
+                    r.setAttribute('stroke-width', '3');
+                });
+                // [Opt]: to highlight source Wire Box name text
+                var sourceTexts = Array.from(prevSibling.querySelectorAll('text')).filter(function (t) {
+                    return !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden');
+                });
+                sourceTexts.forEach(function (t) {
+                    if (!t.hasAttribute('data-orig-fill')) {
+                        t.setAttribute('data-orig-fill', t.getAttribute('fill') || t.style.fill || '');
+                    }
+                    if (!t.hasAttribute('data-orig-font-weight')) {
+                        t.setAttribute('data-orig-font-weight', t.getAttribute('font-weight') || '');
+                    }
+                    t.setAttribute('fill', 'Maroon');
+                    t.style.fill = 'Maroon';
+                });
+            }
+        }
+        // [Alt "not (highlight)"]: to apply when not (highlight
+    } else {
+        // [Alt]: to handle length of target Texts greater than 0
+        if (targetTexts.length > 0) {
+            targetTexts.forEach(function (targetText) {
+                targetText.classList.remove('highlighted-node');
+                targetText.style.fill = "";
+                if (targetText.hasAttribute('data-orig-font-weight')) {
+                    var ofw = targetText.getAttribute('data-orig-font-weight');
+                    if (ofw) targetText.setAttribute('font-weight', ofw);
+                    else targetText.removeAttribute('font-weight');
+                } else {
+                    targetText.removeAttribute("font-weight");
+                }
+
+                // [Scan]: to securely scrub ANY background highlight rectangles injected prior globally relative to this node
+                var pNode = targetText.parentNode;
+                if (pNode) {
+                    var bgs = pNode.querySelectorAll(':scope > .highlight-bg');
+                    bgs.forEach(function (bg) {
+                        try { bg.parentNode.removeChild(bg); } catch (e) { }
+                    });
+                }
+            });
+            // [Alt]: to handle not length of target Texts greater than 0
+        } else {
+            // [Alt]: to fallback highlight for nodes without text.
+            if (!highlight) {
+                var isEdge = isGraphviz && (nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.edge'));
+                // [Opt]: to handle !is Edge
+                if (!isEdge) {
+                    markFallbackShape(false);
+                }
+            }
+        }
+        // [Opt]: to handle is Graphviz contains of class List of node Group edge query Selector of node Group .edge
+        if (isGraphviz && (nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.edge'))) {
+            nodeGroup.querySelectorAll('path, polygon').forEach(function (p) {
+                // [Alt]: to handle has Attribute of p data-orig-stroke
+                if (p.hasAttribute('data-orig-stroke')) {
+                    var os = p.getAttribute('data-orig-stroke');
+                    if (os) p.setAttribute('stroke', os);
+                    else p.removeAttribute('stroke');
+                    p.removeAttribute('data-orig-stroke');
+                    // [Alt]: to handle not has Attribute of p data-orig-stroke
+                } else {
+                    p.removeAttribute('stroke');
+                }
+                // [Alt]: to handle has Attribute of p data-orig-stroke-width
+                if (p.hasAttribute('data-orig-stroke-width')) {
+                    var ow = p.getAttribute('data-orig-stroke-width');
+                    if (ow) p.setAttribute('stroke-width', ow);
+                    else p.removeAttribute('stroke-width');
+                    p.removeAttribute('data-orig-stroke-width');
+                    // [Alt]: to handle not has Attribute of p data-orig-stroke-width
+                } else {
+                    p.removeAttribute('stroke-width');
+                }
+            });
+        }
+        // [Opt]: to restore non-Graphviz wire chart arc element highlighting
+        if (!isGraphviz) {
+            nodeGroup.querySelectorAll('line, polyline, path, polygon').forEach(function (el) {
+                // [Esc]: skip elements belonging to nested child collapsible groups
+                if (el.closest('.collapsible-group') !== nodeGroup) return;
+                if (el.hasAttribute('data-orig-stroke')) {
+                    var os = el.getAttribute('data-orig-stroke');
+                    if (os) el.setAttribute('stroke', os);
+                    else el.removeAttribute('stroke');
+                    el.removeAttribute('data-orig-stroke');
+                }
+                if (el.hasAttribute('data-orig-stroke-width')) {
+                    var ow = el.getAttribute('data-orig-stroke-width');
+                    if (ow) el.setAttribute('stroke-width', ow);
+                    else el.removeAttribute('stroke-width');
+                    el.removeAttribute('data-orig-stroke-width');
+                }
+            });
+            // [Rpt]: to walk backwards through siblings to find source Wire Box title group
+            var prevSibling = nodeGroup.previousElementSibling;
+            while (prevSibling && prevSibling.classList && prevSibling.classList.contains('collapsible-group') && !prevSibling.querySelector(':scope > rect')) {
+                prevSibling = prevSibling.previousElementSibling;
+            }
+            if (prevSibling && prevSibling.classList && prevSibling.classList.contains('collapsible-group') && prevSibling.querySelector(':scope > rect')) {
+                var sourceRects = prevSibling.querySelectorAll(':scope > rect');
+                sourceRects.forEach(function (r) {
+                    if (r.hasAttribute('data-orig-stroke-width')) {
+                        var ow = r.getAttribute('data-orig-stroke-width');
+                        if (ow) r.setAttribute('stroke-width', ow);
+                        else r.removeAttribute('stroke-width');
+                        r.removeAttribute('data-orig-stroke-width');
+                    }
+                });
+                // [Opt]: to restore source Wire Box name text highlighting
+                var sourceTexts = Array.from(prevSibling.querySelectorAll('text')).filter(function (t) {
+                    return !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden');
+                });
+                sourceTexts.forEach(function (t) {
+                    if (t.hasAttribute('data-orig-fill')) {
+                        var of_ = t.getAttribute('data-orig-fill');
+                        if (of_) { t.setAttribute('fill', of_); t.style.fill = of_; }
+                        else { t.removeAttribute('fill'); t.style.fill = ''; }
+                        t.removeAttribute('data-orig-fill');
+                    }
+                    if (t.hasAttribute('data-orig-font-weight')) {
+                        var ofw = t.getAttribute('data-orig-font-weight');
+                        if (ofw) t.setAttribute('font-weight', ofw);
+                        else t.removeAttribute('font-weight');
+                        t.removeAttribute('data-orig-font-weight');
+                    }
+                });
+            }
+        }
+    }
+}
+
+/**
+ * to speak Visual Node text
+ * - Input: Node group element
+ * - Output: Spoken text string
+ */
+function speakNodeText(nodeGroup) {
+
+    var isAssoc = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME && window.NABU_VISUAL_NAME.indexOf('Association') !== -1);
+
+    // [Esc]: is Assoc
+    if (isAssoc) {
+        var gNode = nodeGroup.classList.contains('node') ? nodeGroup : nodeGroup.querySelector('.node');
+        if (gNode && !nodeGroup.classList.contains('edge') && !nodeGroup.querySelector('.edge')) {
+            var titleEl = gNode.querySelector('title');
+            // [Esc]: (titleEl)
+            if (titleEl) return titleEl.textContent.trim().replace(/\\n/g, ' ');
+        }
+    }
+
+    var isGraphviz = nodeGroup.classList.contains('node') || nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.node') !== null || nodeGroup.querySelector('.edge') !== null;
+    var targetTexts = [];
+    // [Esc]: is Graphviz
+    if (isGraphviz) {
+        targetTexts = Array.from(nodeGroup.querySelectorAll('text')).filter(function (t) {
+            return !t.classList.contains('collapsible-trigger') && t.closest('.collapsible-group') === nodeGroup;
+        });
+        // [Alt "not (isGraphviz)"]: to apply when not (isGraphviz
+    } else {
+        var directTexts = Array.from(nodeGroup.querySelectorAll('text')).filter(function (t) {
+            return t.closest('.collapsible-group') === nodeGroup && !t.classList.contains('collapsible-trigger') && !t.closest('.descriptor-cells');
+        });
+
+        targetTexts = targetTexts.concat(directTexts);
+
+        var isArc = isGraphviz || nodeGroup.querySelector('line') || nodeGroup.querySelector('path') || nodeGroup.querySelector('polygon') || nodeGroup.querySelector('polyline');
+
+        var prev = nodeGroup.previousElementSibling;
+        // [Opt]: to handle length of target Texts equals = 0 prev
+        if (targetTexts.length === 0 && prev) {
+            // [Alt]: to handle tag Name of prev equals = g tag Name of prev equals = G contains of class List of prev descriptor-cells
+            if ((prev.tagName === 'g' || prev.tagName === 'G') && prev.classList.contains('descriptor-cells')) {
+                var texts = prev.querySelectorAll('text');
+                if (texts.length > 0) targetTexts = targetTexts.concat(Array.from(texts));
+                // [Alt]: to handle tag Name of prev equals = text tag Name of prev equals = TEXT
+            } else if (prev.tagName === 'text' || prev.tagName === 'TEXT') {
+                targetTexts.push(prev);
+            }
+            // [Opt; Rpt]: to handle length of target Texts equals = 0 is Arc prev tag Name of prev ! equals g tag Name of prev ! equals G | OPT; RPT=
+            if (targetTexts.length === 0 && isArc) {
+                while (prev && prev.tagName !== 'g' && prev.tagName !== 'G') {
+                    // [Opt]: to handle tag Name of prev equals = text tag Name of prev equals = TEXT
+                    if (prev.tagName === 'text' || prev.tagName === 'TEXT') {
+                        targetTexts.unshift(prev);
+                    }
+                    prev = prev.previousElementSibling;
+                }
+            }
+        }
+    }
+
+    var joinStr = ' ';
+    var isInjectedRequires = false;
+    var txt = targetTexts.filter(function (domNode) {
+        return true;
+    }).map(function (t) {
+        var clone = t.cloneNode(true);
+        var triggers = Array.from(clone.querySelectorAll('.collapsible-trigger'));
+        triggers.forEach(function (trig) { trig.parentNode.removeChild(trig); });
+
+        var tspans = Array.from(clone.querySelectorAll('tspan'));
+        // [Esc]: length of tspans greater than rest
+        if (tspans.length > 0) {
+            return tspans.map(function (span) { return span.textContent.trim(); })
+                .filter(function (s) { return s.length > 0 && s.indexOf('|') === -1 && s.indexOf('<') === -1; })
+                .join(' ');
+        }
+        return clone.textContent.trim();
+    }).filter(function (t) {
+        var isAssoc = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME && window.NABU_VISUAL_NAME.indexOf('Association') !== -1);
+        // [Esc]: is Assoc match of t rest
+        if (isAssoc && (t.match(/port_/i) || t.match(/^:/) || t.match(/:\s*port/i))) return false;
+        return t.length > 0 && t.indexOf('|{') === -1 && t.indexOf('}|') === -1 && t !== '{' && t !== '}' && t !== '-';
+    }).join(joinStr);
+
+    // [Alt]: to use the JSON-based table manager (NABU_RULES) to process text formatting
+    if (typeof NABU_RULES !== 'undefined') {
+        var defaultVisual = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME) ? window.NABU_VISUAL_NAME : (window.location ? window.location.href : '');
+
+
+        var evalRule = function (t, r) {
+            // [Alt]: to handle replacement of r is not null regex of r
+            if (r.replacement != null && r.regex) {
+                return t.replace(new RegExp(r.regex, 'ig'), r.replacement);
+                // [Alt]: to handle prefix of r is not null postfix of r is not null
+            } else if (r.prefix != null || r.postfix != null) {
+                if (!r.regex || t.match(new RegExp(r.regex, 'i'))) {
+                    return (r.prefix || "") + t + (r.postfix || "");
+                }
+                // [Alt]: to handle regex of r
+            } else if (r.regex) {
+                return t.replace(new RegExp(r.regex, 'ig'), "");
+            }
+            return t;
+        };
+
+        // [Opt]: to handle name Adornment of NABU_ RULES
+        if (NABU_RULES.nameAdornment) {
+            var visualKey = Object.keys(NABU_RULES.nameAdornment).find(k => defaultVisual.indexOf(k) !== -1);
+            // [Opt]: to handle visual Key
+            if (visualKey) {
+                var rulesMap = NABU_RULES.nameAdornment[visualKey];
+
+                // [Scan]: to strip redundant 'and ' prefix added by genericRequirementLadder for legacy narrative reasons before conditionals
+                txt = txt.replace(/^and\s+(alt|opt|rpt|arg|pre|post|test|imp|ret|in scenario|substitute|sink|source)/i, '$1');
+
+                // [Scan]: to extract structural prefixes before evaluating structural regexes
+                var structuralRegex = /^(?:in scenario:\s*"[^"]*"\s*|substitute:\s*)?(?:(?:alt|opt|rpt|arg|pre|post|test|imp|ret|sink|source)[^:]*:\s*)*(?:\[\d+[a-z]{2}\]\s*)?/i;
+                var structMatch = txt.match(structuralRegex);
+                var extractedPrefix = "";
+                // [Opt]: to handle struct Match struct Match 0 .length greater than 0
+                if (structMatch && structMatch[0].length > 0) {
+                    extractedPrefix = structMatch[0];
+                    txt = txt.substring(extractedPrefix.length);
+                }
+
+                var eventTypesToCheck = ['foreignTraversal', 'ellipsis'];
+
+                var poly = Array.from(nodeGroup.querySelectorAll('polygon, polyline')).find(function (p) { return p.closest('.collapsible-group') === nodeGroup; }) || null;
+                var dashed = Array.from(nodeGroup.querySelectorAll('line[stroke-dasharray], path[stroke-dasharray], polygon[stroke-dasharray], polyline[stroke-dasharray]')).find(d => d.closest('.collapsible-group') === nodeGroup);
+                // [Opt]: to handle !dashed poly
+                if (!dashed && poly) {
+                    var pg = poly.closest('g');
+                    // [Opt]: to handle pg
+                    if (pg) dashed = Array.from(pg.querySelectorAll('[stroke-dasharray]')).find(d => d.closest('.collapsible-group') === nodeGroup);
+                }
+                var isDashed = dashed && dashed.getAttribute('stroke-dasharray') !== 'none';
+
+                var isEscape = false;
+                // [Opt; Opt; Opt]: to handle is Dashed tag Name of dashed equals = line tag Name of dashed equals = path !has Attribute of dashed marker-end !has Attribute of dashed marker-mid !has Attribute of dashed marker-start | OPT; OPT; OPT=
+                if (isDashed) {
+                    if (dashed.tagName === 'line' || dashed.tagName === 'path') {
+                        // [Alt]: to the lack of arrowhead markers implies an Escape dashed-line, not a Returned-value dashed-arc
+                        if (!dashed.hasAttribute('marker-end') && !dashed.hasAttribute('marker-mid') && !dashed.hasAttribute('marker-start')) {
+                            isEscape = true;
+                        }
+                    }
+                }
+
+                // [Alt]: to handle is Escape
+                if (isEscape) {
+                    eventTypesToCheck.push('escapeArc');
+                    // [Alt]: to handle is Dashed
+                } else if (isDashed) {
+                    eventTypesToCheck.push('dashedArc');
+                }
+
+                var isBackwardArc = false;
+                var isReflexive = false;
+
+                // [Opt]: to handle contains of class List of node Group edge
+                if (nodeGroup.classList.contains('edge')) {
+                    var titleEl = nodeGroup.querySelector('title');
+                    // [Opt]: to handle title El
+                    if (titleEl) {
+                        var edgeTitleParts = titleEl.textContent.split('->');
+                        // [Opt]: to handle length of edge Title Parts equals = 2 edge Title Parts 0 .trim equals = edge Title Parts 1 .trim
+                        if (edgeTitleParts.length === 2 && edgeTitleParts[0].trim() === edgeTitleParts[1].trim()) {
+                            isReflexive = true;
+                        }
+                    }
+                }
+
+                // [Opt]: to handle !is Reflexive
+                if (!isReflexive) {
+                    var ptsStr = poly ? poly.getAttribute('points') : null;
+                    // [Alt]: to handle !pts Str
+                    if (!ptsStr) {
+                        var line = Array.from(nodeGroup.querySelectorAll('line[marker-end], path[marker-end]')).find(function (l) { return l.closest('.collapsible-group') === nodeGroup; }) || null;
+                        if (line && line.tagName === 'line') {
+                            var x1 = parseFloat(line.getAttribute('x1')), x2 = parseFloat(line.getAttribute('x2'));
+                            var y1 = parseFloat(line.getAttribute('y1')), y2 = parseFloat(line.getAttribute('y2'));
+                            if (!isNaN(x1) && !isNaN(x2) && !isNaN(y1) && !isNaN(y2)) {
+                                if ((x1 > x2 + 15) || (y1 > y2 + 15)) isBackwardArc = true;
+                            }
+                        }
+                        // [Alt]: to handle pts Str
+                    } else if (ptsStr) {
+                        var ptArr = ptsStr.split(/[\s,]+/);
+                        var firstX = parseFloat(ptArr[0]), lastX = parseFloat(ptArr[ptArr.length - 2]);
+                        var firstY = parseFloat(ptArr[1]), lastY = parseFloat(ptArr[ptArr.length - 1]);
+                        if (!isNaN(firstX) && !isNaN(lastX) && !isNaN(firstY) && !isNaN(lastY)) {
+                            if ((firstX > lastX + 15) || (firstY > lastY + 15)) isBackwardArc = true;
+                        }
+
+                        var box = nodeGroup.previousElementSibling;
+                        while (box && box.classList && box.classList.contains('collapsible-group') && !box.querySelector(':scope > rect')) box = box.previousElementSibling;
+                        if (box) {
+                            var r = box.querySelector('rect');
+                            if (r) {
+                                var rcx = parseFloat(r.getAttribute('x')) + (parseFloat(r.getAttribute('width')) / 2);
+                                eventTypesToCheck.push((firstX > rcx) ? 'rightCoupling' : 'leftCoupling');
+                            }
+                        }
+                    }
+                }
+
+                // [Opt]: to handle !is Dashed !match of txt /returns/i is Backward Arc
+                if (!isDashed && !txt.match(/returns/i) && isBackwardArc) {
+                    eventTypesToCheck.push('backwardArc');
+                }
+
+                // [Alt]: to handle contains of class List of node Group edge query Selector of node Group .edge ! equals null
+                if (nodeGroup.classList.contains('edge') || nodeGroup.querySelector('.edge') !== null) {
+                    eventTypesToCheck.push('requiresGraphvizEdge');
+                    // [Alt]: to handle not contains of class List of node Group edge query Selector of node Group .edge ! equals null
+                } else {
+                    eventTypesToCheck.push('requiresNonGraphviz');
+                    eventTypesToCheck.push('requiresGraphvizNode');
+                }
+
+                eventTypesToCheck.forEach(function (evt) {
+                    var rule = rulesMap[evt];
+                    // [Esc]: to handle !rule
+                    if (!rule) return;
+
+                    // [Alt]: to handle evt equals = left Coupling
+                    if (evt === 'leftCoupling') {
+                        var leftTxt = evalRule('', rule).trim();
+                        var tailTxt = txt.trim();
+                        if (leftTxt.length > 0) {
+                            if (tailTxt.length > 0) {
+                                txt = leftTxt + ' ' + tailTxt;
+                            } else {
+                                txt = leftTxt;
+                            }
+                            isInjectedRequires = false;
+                        } else {
+                            if (tailTxt.length > 0) {
+                                txt = "requires " + tailTxt;
+                            } else {
+                                txt = "requires";
+                            }
+                            isInjectedRequires = true;
+                        }
+                        // [Alt]: to handle evt equals = right Coupling
+                    } else if (evt === 'rightCoupling') {
+                        if (txt.length > 0) {
+                            var newTxt = evalRule(txt, rule);
+                            if (newTxt === txt) txt = "is coupled by " + txt + " with";
+                            else txt = newTxt;
+                        }
+                        // [Alt]: to handle evt equals = requires Graphviz Edge
+                    } else if (evt === 'requiresGraphvizEdge') {
+                        if (!txt.match(/requires/i) && !txt.match(/returns/i) && !txt.match(/to\s/i) && !txt.match(/No couplings inside/i) && txt.trim().length > 0) {
+                            txt = evalRule(txt, rule);
+                        }
+                        // [Alt]: to handle evt equals = requires Non Graphviz
+                    } else if (evt === 'requiresNonGraphviz') {
+                        if (txt.match(/(^|\s)to\s+/i)) {
+                            txt = evalRule(txt, rule);
+                        }
+                        // [Alt]: to handle evt equals = dashed Arc evt equals = backward Arc evt equals = foreign Traversal evt equals = ellipsis evt equals = escape Arc
+                    } else if (evt === 'dashedArc' || evt === 'backwardArc' || evt === 'foreignTraversal' || evt === 'ellipsis' || evt === 'escapeArc') {
+                        if (txt.length > 0) txt = evalRule(txt, rule);
+                    }
+                });
+
+                // [Scan]: to re-inject the structural prefix so it sits OUTSIDE the adorned phrasing
+                txt = extractedPrefix + txt;
+            }
+        }
+
+        // [Opt]: to handle prefix Replacement of NABU_ RULES global of prefix Replacement of NABU_ RULES
+        if (NABU_RULES.prefixReplacement && NABU_RULES.prefixReplacement.global) {
+            Object.keys(NABU_RULES.prefixReplacement.global).forEach(function (trigger) {
+                var rule = NABU_RULES.prefixReplacement.global[trigger];
+                var re = new RegExp('(?:^|\\s)' + trigger, 'ig');
+                txt = txt.replace(re, ' ' + rule.replacement + ' ');
+            });
+        }
+    }
+
+    var finalText = txt.trim();
+    // [Alt "(finalText.toLowerCase() === 'requires' && isInjectedRe…"]: to apply when finalText.toLowerCase() is 'requires' && isInjectedRe…
+    if (finalText.toLowerCase() === 'requires' && isInjectedRequires) {
+        try { nodeGroup.setAttribute('data-injected-requires', 'true'); } catch (e) { }
+        // [Alt "not (finalText.toLowerCase() === 'requires' && isInject…"]: to apply when not (finalText.toLowerCase() is 'requires' && isInject…
+    } else {
+        // [Guard]: to do RENAME ME vectorGraphic 623 0000
+        // [Esc Warning]: "e"
+        try { nodeGroup.removeAttribute('data-injected-requires'); } catch (e) { }
+    }
+
+    return finalText;
+}
+
+/**
+ * to expand all Visual Nodes
+ */
+function expandAllNodes() {
+    animatedNodes.forEach(function (node) {
+        node.style.display = 'inline';
+    });
+    document.querySelectorAll('g.collapsible-group').forEach(function (g) {
+        g.style.display = 'inline';
+    });
+    document.querySelectorAll('.collapsible-trigger').forEach(function (trigger) {
+        trigger.textContent = '-';
+        var g = trigger.closest('g');
+        // [Opt]: to handle g next Element Sibling of g tag Name of next Element Sibling of g equals = g
+        if (g && g.nextElementSibling && g.nextElementSibling.tagName === 'g') {
+            g.nextElementSibling.style.display = 'inline';
+        }
+    });
+
+    document.querySelectorAll('g.cluster').forEach(function (cluster) {
+        cluster.style.display = 'inline';
+    });
+
+    var allTargets = document.querySelectorAll('[data-targets]');
+    allTargets.forEach(function (el) {
+        var tStr = el.getAttribute('data-targets');
+        // [Opt]: to handle t Str
+        if (tStr) {
+            tStr.split(',').forEach(function (id) {
+                var t = document.getElementById(id);
+                // [Opt]: to handle t
+                if (t) {
+                    t.style.display = 'inline';
+                    // [Scan]: to optional: reset their data-ref-count to 1 or whatever default is
+                }
+            });
+        }
+    });
+}
+
+/**
+ * to collapse all Visual Nodes for Animation
+ */
+function collapseAllForAnimation() {
+
+    // [Guard]: to do RENAME ME vectorGraphic 676 0000
+    try {
+        // [Scan]: to 1a. Force global cleanup of text styles
+        document.querySelectorAll('.highlighted-node').forEach(function (node) {
+            if (node.classList) node.classList.remove('highlighted-node');
+            if (node.style) node.style.fill = "";
+            if (node.hasAttribute && node.hasAttribute('data-orig-font-weight')) {
+                var ofw = node.getAttribute('data-orig-font-weight');
+                if (ofw) node.setAttribute('font-weight', ofw);
+                else node.removeAttribute("font-weight");
+            } else if (node.removeAttribute) {
+                node.removeAttribute("font-weight");
+            }
+        });
+        // [Scan]: to 1a2. Force global cleanup of source box name fill overrides
+        document.querySelectorAll('text[data-orig-fill]').forEach(function (t) {
+            var of_ = t.getAttribute('data-orig-fill');
+            if (of_) { t.setAttribute('fill', of_); t.style.fill = of_; }
+            else { t.removeAttribute('fill'); t.style.fill = ''; }
+            t.removeAttribute('data-orig-fill');
+        });
+        // [Esc Warning]: "e"
+        // to log Error in text highlight wipe e
+    } catch (e) { console.error("Error in text highlight wipe", e); }
+
+    // [Guard]: to do RENAME ME vectorGraphic 694 0000
+    try {
+        // [Scan]: to 1b. Unconditionally crush any injected background rectangles and global overrides
+        document.querySelectorAll('.highlight-bg').forEach(function (bg) {
+            if (bg.parentNode) {
+                try { bg.parentNode.removeChild(bg); } catch (ex) { }
+            }
+        });
+        document.querySelectorAll('path[data-orig-stroke], polygon[data-orig-stroke], line[data-orig-stroke], polyline[data-orig-stroke]').forEach(function (p) {
+            var os = p.getAttribute('data-orig-stroke');
+            // [Alt]: to handle os
+            if (os) p.setAttribute('stroke', os);
+            // [Alt]: to handle not os
+            else p.removeAttribute('stroke');
+            p.removeAttribute('data-orig-stroke');
+        });
+        document.querySelectorAll('path[data-orig-stroke-width], polygon[data-orig-stroke-width], line[data-orig-stroke-width], polyline[data-orig-stroke-width], rect[data-orig-stroke-width]').forEach(function (p) {
+            var ow = p.getAttribute('data-orig-stroke-width');
+            // [Alt]: to handle ow
+            if (ow) p.setAttribute('stroke-width', ow);
+            // [Alt]: to handle not ow
+            else p.removeAttribute('stroke-width');
+            p.removeAttribute('data-orig-stroke-width');
+        });
+        document.querySelectorAll('path[stroke="Maroon"], polygon[stroke="Maroon"]').forEach(function (p) {
+            p.removeAttribute('stroke');
+            p.removeAttribute('stroke-width');
+        });
+        // [Esc Warning]: "e"
+        // to log Error in bg rect wipe e
+    } catch (e) { console.error("Error in bg rect wipe", e); }
+
+    // [Guard]: to do RENAME ME vectorGraphic 726 0000
+    try {
+        // [Scan]: to 2. Hide all structural groups to create a true blank canvas (hides loose Graphviz lines)
+        document.querySelectorAll('g.collapsible-group').forEach(function (g) {
+            g.style.display = 'none';
+            if (g.getBoundingClientRect) {
+                // [Scan]: to force Edge/Chromium Repaint flush to fix sticking ghost rects
+                var dummy = g.getBoundingClientRect().width;
+            }
+        });
+        // [Esc Warning]: "e"
+        // to log Error hiding collateral wrappers e
+    } catch (e) { console.error("Error hiding collateral wrappers", e); }
+
+    // [Guard]: to do RENAME ME vectorGraphic 740 0000
+    try {
+        // [Alt]: to 3. Progressive Reveal Engine Initialization
+        if (typeof animatedNodes !== 'undefined' && animatedNodes.length > 0) {
+            animatedNodes.forEach(function (node) {
+                node.style.display = 'none';
+            });
+        }
+        // [Esc Warning]: "e"
+        // to log Error dynamically unmasking ancestry e
+    } catch (e) { console.error("Error dynamically unmasking ancestry", e); }
+
+    // [Guard]: to do RENAME ME vectorGraphic 752 0000
+    try {
+        // [Scan]: to 4. Force specific clusters hidden to ensure clean visual reset
+        document.querySelectorAll('g.cluster').forEach(function (c) {
+            c.style.display = 'none';
+        });
+
+        // [Scan]: to 5. Reset triggers
+        document.querySelectorAll('.collapsible-trigger').forEach(function (trigger) {
+            trigger.textContent = '+';
+        });
+        // [Esc Warning]: "e"
+        // to log e
+    } catch (e) { console.error(e); }
+
+    // [Guard]: to do RENAME ME vectorGraphic 767 0000
+    try {
+        // [Scan]: to 6. Data Targets Normalization
+        document.querySelectorAll('[data-targets]').forEach(function (el) {
+            var tStr = el.getAttribute('data-targets');
+            if (tStr) {
+                tStr.split(',').forEach(function (id) {
+                    var t = document.getElementById(id);
+                    if (t) {
+                        if (t.hasAttribute('data-ref-count')) t.setAttribute('data-ref-count', '0');
+                        t.style.display = 'none';
+                    }
+                });
+            }
+        });
+        // [Esc Warning]: "e"
+        // to log Error in data targets e
+    } catch (e) { console.error("Error in data targets", e); }
+
+    // [Scan]: to tHE ULTIMATE EDGE CACHE BUSTER FOR STICKY GHOST RECTANGLES:
+    var rootSvg = document.querySelector('svg');
+    // [Opt]: to handle root Svg
+    if (rootSvg) {
+        rootSvg.style.display = 'none';
+        var _flushCache = rootSvg.getBoundingClientRect().height;
+        rootSvg.style.display = 'block';
+    }
+
+
+}
+
+// [Scan]: to ensure no concurrent multi-timers are spawned over multiple fast-clicks or loop rollovers
+var animationSafetyLock = false;
+
+/**
+ * to animate next Visual Node step
+ * - Input: Expected sequence ID
+ */
+function animateNextStep(expectedSeqId) {
+    // [Esc]: !is Animation Active nabu Animation rest
+    if (!isAnimationActive || nabuAnimationBlocked || animationSafetyLock) {
+        if (nabuAnimationBlocked)
+            return;
+    }
+    // [Esc]: expected Seq Id ! equals rest
+    if (expectedSeqId !== undefined && expectedSeqId !== currentAnimationSequenceId) {
+
+        return;
+    }
+    animationSafetyLock = true;
+
+    // [Guard]: to do RENAME ME vectorGraphic 818 0000
+    try {
+
+
+        // [Opt]: to handle current Animation Index greater or equal 0 current Animation Index less than length of animated Nodes
+        if (currentAnimationIndex >= 0 && currentAnimationIndex < animatedNodes.length) {
+            var prevNode = animatedNodes[currentAnimationIndex];
+            highlightNode(prevNode, false);
+            var prevTargetId = prevNode.getAttribute('data-highlight-target');
+            // [Opt]: to handle prev Target Id
+            if (prevTargetId) {
+                var prevTargetNode = document.getElementById(prevTargetId);
+                // [Opt]: to handle prev Target Node
+                if (prevTargetNode) highlightNode(prevTargetNode, false);
+            }
+        }
+
+        currentAnimationIndex++;
+
+        // [Opt; Opt]: to handle current Animation Index greater or equal length of animated Nodes length of animated Nodes greater than 0 | OPT; OPT="current Animation Index greater or equal length of animated Nodes" "length of animated Nodes greater than 0"
+        if (currentAnimationIndex >= animatedNodes.length) {
+
+            if (animatedNodes.length > 0) {
+                // [Scan]: to new Assignment: limit front-end animation to a single cycle. Animation shall go through the expansion process
+                // [Scan]: to of the visual exactly once and restore the visual to its full extent and unchecks the animation checkbox.
+
+                stopAnimation();
+                return;
+            } else {
+
+                return;
+            }
+        }
+
+        var currentNode = animatedNodes[currentAnimationIndex];
+
+        currentNode.style.display = 'inline';
+
+        // [Scan]: to dynamically unmask Outer wrapper hierarchy to ensure this node is visible through its parent chain
+        var p = currentNode.parentElement;
+        while (p && p.tagName === 'g') {
+            // [Opt]: to handle contains of class List of p collapsible-group
+            if (p.classList.contains('collapsible-group')) {
+                p.style.display = 'inline';
+                var pTrigger = p.querySelector('.collapsible-trigger');
+                if (pTrigger) pTrigger.textContent = '-';
+            }
+            p = p.parentElement;
+        }
+
+        highlightNode(currentNode, true);
+
+        // [Scan]: to process graphic target highlighting & unmasking IMMEDIATELY (prevents skipping if SAPI text is empty)
+        var targetId = currentNode.getAttribute('data-highlight-target');
+        // [Opt]: to handle target Id
+        if (targetId) {
+            var targetNode = document.getElementById(targetId);
+            // [Opt]: to handle target Node
+            if (targetNode) {
+                targetNode.style.display = 'inline';
+                var tp = targetNode.parentElement;
+                while (tp && tp.tagName === 'g') {
+                    // [Opt]: to handle contains of class List of tp collapsible-group
+                    if (tp.classList.contains('collapsible-group')) {
+                        tp.style.display = 'inline';
+                        var tpTrigger = tp.querySelector('.collapsible-trigger');
+                        if (tpTrigger) tpTrigger.textContent = '-';
+                    }
+                    tp = tp.parentElement;
+                }
+                highlightNode(targetNode, true);
+            }
+        }
+
+        // [Scan]: to use PRE-EXTRACTED node text to avoid DOM state inconsistency at speech end
+        var textToSpeak = (currentAnimationIndex >= 0 && currentAnimationIndex < animatedNodeData.length)
+            ? animatedNodeData[currentAnimationIndex].text
+            : '';
+
+        // [Opt]: to expose parents like cluster blocks when their inner child gets un-hidden
+        try {
+            var bbox = currentNode.getBBox();
+            // [Opt]: to handle width of bbox greater than 0 height of bbox greater than 0
+            if (bbox.width > 0 && bbox.height > 0) {
+                var cx = bbox.x + bbox.width / 2;
+                var cy = bbox.y + bbox.height / 2;
+                document.querySelectorAll('g.cluster').forEach(function (cluster) {
+                    // [Esc]: to handle display of style of cluster ! equals none
+                    if (cluster.style.display !== 'none') return;
+                    var poly = cluster.querySelector('polygon');
+                    // [Opt]: to handle poly
+                    if (poly) {
+                        var pBox = poly.getBBox();
+                        // [Opt]: to handle cx greater or equal x of p Box cx less or equal x of p Box + width of p Box cy greater or equal y of p Box cy less or equal y of p Box + height of p Box
+                        if (cx >= pBox.x && cx <= pBox.x + pBox.width &&
+                            cy >= pBox.y && cy <= pBox.y + pBox.height) {
+                            cluster.style.display = 'inline';
+                        }
+                    }
+                });
+            }
+            // [Esc Warning]: "e"
+        } catch (e) { }
+
+        // [Scan]: to skip non-visible sequences immediately but pause to decouple visual exposure
+        var speechCheckbox = document.getElementById('animSpeech');
+        // [Opt]: to handle speech Checkbox checked of speech Checkbox
+        if (speechCheckbox && speechCheckbox.checked) {
+            var diagBox = document.getElementById('nabu-diagnostic');
+            // [Opt]: to handle diag Box
+            if (diagBox) {
+                var safeTextToSpeak = textToSpeak ? textToSpeak.replace(/\[/g, ' ').replace(/\]/g, ' ').trim() : '[SILENT COMPONENT VISUALIZATION]';
+                diagBox.innerHTML = 'INDEX: ' + currentAnimationIndex + ' (of ' + animatedNodes.length + ')\n\nTEXT PRE-EXTRACTED:\n"' + safeTextToSpeak + '"';
+            }
+        }
+
+        var scheduleNextStep = function (delay) {
+
+            // [Esc]: to handle !is Animation Active expected Seq Id ! equals current Animation Sequence Id
+            if (!isAnimationActive || expectedSeqId !== currentAnimationSequenceId) {
+
+                return;
+            }
+            clearTimeout(animationTimer);
+
+            animationTimer = setTimeout(function () { animateNextStep(expectedSeqId); }, delay);
+        };
+
+        // [Esc]: to handle length of text To Speak equals = 0
+        if (textToSpeak.length === 0) {
+
+            var delay = (animationInterval > 0) ? 500 : 0;
+            scheduleNextStep(delay);
+            return;
+        }
+
+        var trigger = currentNode.querySelector('.collapsible-trigger');
+        // [Opt]: to handle trigger
+        if (trigger) trigger.textContent = '-';
+
+        // [Scan]: to suppress exact consecutive duplicates natively using aggressive alpha-numeric normalization
+        var aggSpoken = textToSpeak.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        // [Alt]: to handle last Spoken Aggressive of window equals = agg Spoken length of agg Spoken greater than 0
+        if (window.lastSpokenAggressive === aggSpoken && aggSpoken.length > 0) {
+            textToSpeak = null;
+            // [Alt]: to handle not last Spoken Aggressive of window equals = agg Spoken length of agg Spoken greater than 0
+        } else {
+            window.lastSpokenAggressive = aggSpoken;
+            window.lastSpokenText = textToSpeak;
+        }
+
+        var speechCheckbox = document.getElementById('animSpeech');
+        var speechEnabled = speechCheckbox && speechCheckbox.checked && textToSpeak && window.speechSynthesis && animationInterval > 1000;
+
+        // [Esc]: to handle speech Enabled
+        if (speechEnabled) {
+
+
+            var stepStart = Date.now();
+            var safeTextToSpeak = textToSpeak.replace(/\[/g, ' ').replace(/\]/g, ' ');
+            var seqSapi = expectedSeqId;
+            var token = ++nabuLatestSpeechToken;
+            nabuLatestSpeechSequenceId = seqSapi;
+
+            setTimeout(function () {
+
+                if (!isAnimationActive || nabuAnimationBlocked) {
+
+                    return;
+                }
+                if (seqSapi !== undefined && seqSapi !== currentAnimationSequenceId) {
+
+                    return;
+                }
+                if (seqSapi !== nabuLatestSpeechSequenceId || token !== nabuLatestSpeechToken) {
+
+                    return;
+                }
+
+
+                window._activeSapiMsg = new SpeechSynthesisUtterance(safeTextToSpeak);
+                nabuActiveSpeechUtterance = window._activeSapiMsg;
+                window._activeSapiMsg.volume = 1.0;
+                window._activeSapiMsg.rate = 1.0;
+                window._activeSapiMsg.pitch = 1.0; // Locked pitch. Varying pitch triggers Azure Cloud TTS fallback in Edge!
+
+                // [Opt]: to prefer high-quality voices over default robotic OS voices
+                var voices = window.speechSynthesis.getVoices();
+                if (voices && voices.length > 0) {
+                    var bestVoice = voices.find(function (v) {
+                        return (v.name.indexOf('Google') !== -1 || v.name.indexOf('Microsoft') !== -1 || v.name.indexOf('Natural') !== -1) && v.lang.indexOf('en') === 0;
+                    });
+                    if (!bestVoice) {
+                        // Fallback: any English voice that isn't the default eSpeak (if possible)
+                        bestVoice = voices.find(function (v) { return v.lang.indexOf('en') === 0 && v.name.indexOf('eSpeak') === -1; });
+                    }
+                    if (bestVoice) {
+                        window._activeSapiMsg.voice = bestVoice;
+                    }
+                }
+
+                window._activeSapiMsg.onstart = function () {
+
+                };
+                window._activeSapiMsg.onend = function () {
+
+                    nabuActiveSpeechUtterance = null;
+                    if (!isAnimationActive || nabuAnimationBlocked) {
+
+                        return;
+                    }
+                    if (seqSapi !== currentAnimationSequenceId) {
+
+                        return;
+                    }
+                    if (seqSapi !== nabuLatestSpeechSequenceId || token !== nabuLatestSpeechToken) {
+
+                        return;
+                    }
+
+                    // [Alt]: to when we reach the final node, terminate immediately and avoid an extra animation step.
+                    if (currentAnimationIndex >= animatedNodes.length - 1) {
+
+                        stopAnimation();
+                        return;
+                    }
+
+                    var elapsed = Date.now() - stepStart;
+                    var remaining = Math.max(0, animationInterval - elapsed);
+                    scheduleNextStep(remaining);
+                };
+                window._activeSapiMsg.onerror = function (e) {
+
+                    nabuActiveSpeechUtterance = null;
+                    if (!isAnimationActive || seqSapi !== currentAnimationSequenceId || seqSapi !== nabuLatestSpeechSequenceId || token !== nabuLatestSpeechToken || nabuAnimationBlocked) return;
+                    scheduleNextStep(animationInterval);
+                };
+                window.speechSynthesis.speak(window._activeSapiMsg);
+            }, 100);
+
+            return;
+        }
+
+        // [Alt]: to non-speaking path: maintain standard interval
+        if (animationInterval > 0) {
+            scheduleNextStep(animationInterval);
+        }
+        // [Esc Warning]: "e"
+    } catch (e) {
+        // to log Critical error in animateNextStep sequence: e
+        console.error("Critical error in animateNextStep sequence:", e);
+    } finally {
+        animationSafetyLock = false;
+    }
+}
+
+/**
+ * to show Animation Cancel popup
+ */
+function showAnimationCancelPopup() {
+    var popup = document.getElementById('nabu-animation-popup');
+    // [Opt]: to apply when !popup) {
+    if (!popup) {
+        popup = document.createElement('div');
+        popup.id = 'nabu-animation-popup';
+        popup.style.position = 'fixed';
+        popup.style.top = '20px';
+        popup.style.left = '50%';
+        popup.style.transform = 'translateX(-50%)';
+        popup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        popup.style.color = 'white';
+        popup.style.padding = '10px 20px';
+        popup.style.borderRadius = '5px';
+        popup.style.zIndex = '9999';
+        popup.style.fontFamily = 'Arial, sans-serif';
+        popup.style.fontSize = '14px';
+        popup.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+        popup.style.display = 'flex';
+        popup.style.alignItems = 'center';
+        popup.style.gap = '15px';
+
+        var text = document.createElement('span');
+        text.innerText = 'Press <Escape> to cancel the animation';
+
+        var btn = document.createElement('button');
+        btn.innerText = 'Stop!';
+        btn.style.backgroundColor = '#d9534f';
+        btn.style.color = 'white';
+        btn.style.border = 'none';
+        btn.style.padding = '5px 10px';
+        btn.style.borderRadius = '3px';
+        btn.style.cursor = 'pointer';
+        btn.style.fontWeight = 'bold';
+
+        btn.onclick = function () {
+            var animWand = document.getElementById('animWand');
+            if (animWand) animWand.textContent = '\u{1FA84}';
+            stopAnimation();
+            popup.style.display = 'none';
+        };
+
+        popup.appendChild(text);
+        popup.appendChild(btn);
+        document.body.appendChild(popup);
+    }
+    popup.style.display = 'flex';
+
+    setTimeout(function () {
+        // [Opt]: to handle popup
+        if (popup) popup.style.display = 'none';
+    }, 5000);
+}
+
+/**
+ * to start Visual Animation
+ * - Input: Is auto start flag
+ */
+function startAnimation(isAutoStart) {
+    // [Opt]: to apply when isAutoStart === true) {
+    if (isAutoStart === true) {
+        showAnimationCancelPopup();
+    }
+    isAnimationActive = true;
+    nabuAnimationBlocked = false;
+    clearTimeout(animationTimer);
+    var seenCoords = {};
+    animatedNodes = Array.from(document.querySelectorAll('g.collapsible-group')).filter(function (node) {
+        var p = node.closest('div');
+        // [Esc]: to handle p style of p display of style of p equals = none
+        if (p && p.style && p.style.display === 'none') return false;
+        var shapes = Array.from(node.querySelectorAll('rect, polyline, polygon, line, path, circle, ellipse, text'));
+        var hasDirectShape = shapes.some(function (s) {
+            return s.closest('.collapsible-group') === node;
+        });
+        // [Esc]: to handle !has Direct Shape
+        if (!hasDirectShape) return false;
+
+        // [Guard]: to do RENAME ME vectorGraphic 1148 0000
+        try {
+            var bbox = node.getBBox();
+            // [Opt]: to handle width of bbox greater than 0 height of bbox greater than 0
+            if (bbox.width > 0 && bbox.height > 0) {
+                var rx = Math.round(bbox.x);
+                var ry = Math.round(bbox.y);
+                var rw = Math.round(bbox.width);
+                var rh = Math.round(bbox.height);
+
+                var foundMatch = false;
+                for (var key in seenCoords) {
+                    var parts = key.split('_');
+                    var ox = parseInt(parts[0]);
+                    var oy = parseInt(parts[1]);
+                    var ow = parseInt(parts[2]);
+                    var oh = parseInt(parts[3]);
+                    // [Alt]: to only match essentially perfect physical duplicates (shadow clones)
+                    if (Math.abs(ox - rx) <= 5 && Math.abs(oy - ry) <= 5 && Math.abs(ow - rw) <= 5 && Math.abs(oh - rh) <= 5) {
+
+                        foundMatch = true;
+                        break;
+                    }
+                }
+
+                // [Esc]: to handle found Match
+                if (foundMatch) {
+                    var isLadder = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME && window.NABU_VISUAL_NAME.indexOf('Requirement Ladder') !== -1);
+                    // [Scan]: to requirement Tree nests children inside parent collapsible-groups, so parent/child pairs
+                    // [Scan]: to legitimately share identical bounding boxes — do not deduplicate them.
+                    var isTree = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME && window.NABU_VISUAL_NAME.indexOf('Requirement Tree') !== -1);
+                    if (!isLadder && !isTree) return false;
+                }
+
+                var newKey = rx + "_" + ry + "_" + rw + "_" + rh;
+                seenCoords[newKey] = true;
+            }
+            // [Esc Warning]: "e"
+        } catch (e) { }
+
+        // [Esc]: to phonetic structural deduplication has been obliterated: Native Nabu uses identical textual footprints for legitimate multi-branch or recursive sequence rendering.
+        // [Esc]: to muting consecutive audio variants is handled directly down in `speakNodeText` SAPI dispatch.
+
+        return true;
+    });
+    // [Esc]: length of animated Nodes equals rest
+    if (animatedNodes.length === 0) return;
+
+    // [Scan]: to pRE-EXTRACT node text and metadata to eliminate DOM-state timing issues during speech dispatch
+    animatedNodeData = [];
+    var nodeDataByNode = new Map();
+    for (var i = 0; i < animatedNodes.length; i++) {
+        var nodeData = {
+            text: speakNodeText(animatedNodes[i]),
+            edgeTitle: null
+        };
+        var isGraphvizEdge = animatedNodes[i].classList.contains('edge') || animatedNodes[i].querySelector('.edge');
+        // [Opt]: to handle is Graphviz Edge
+        if (isGraphvizEdge) {
+            var tNode = animatedNodes[i].querySelector('title');
+            // [Opt]: to handle t Node
+            if (tNode) nodeData.edgeTitle = tNode.textContent.trim();
+        }
+        animatedNodeData.push(nodeData);
+        nodeDataByNode.set(animatedNodes[i], nodeData);
+
+    }
+
+    // [Scan]: to prepend source box name to wire chart arc speech when the box is already present
+    var defaultVisual = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME) ? window.NABU_VISUAL_NAME : (window.location ? window.location.href : '');
+    var isCoupling = defaultVisual.indexOf('Coupling Chart') !== -1;
+    if (isCoupling) {
+        var seenBoxGroups = new Set();
+        var boxesWithArcSpoken = new Set();
+        var rootBoxNode = null;
+        for (var i = 0; i < animatedNodes.length; i++) {
+            var node = animatedNodes[i];
+            var isGraphviz = node.classList.contains('node') || node.classList.contains('edge') || node.querySelector('.node') !== null || node.querySelector('.edge') !== null;
+            // [Opt]: to classify non-Graphviz node as box title or arc group
+            if (!isGraphviz) {
+                var hasDirectRect = node.querySelector(':scope > rect') !== null;
+                if (hasDirectRect) {
+                    // to register box title group as seen
+                    seenBoxGroups.add(node);
+                    if (!rootBoxNode) {
+                        rootBoxNode = node;
+                    }
+                } else {
+                    // [Rpt]: to walk backwards through siblings to find source box title group
+                    var prevSib = node.previousElementSibling;
+                    while (prevSib && prevSib.classList && prevSib.classList.contains('collapsible-group') && !seenBoxGroups.has(prevSib)) {
+                        prevSib = prevSib.previousElementSibling;
+                    }
+                    if (prevSib && seenBoxGroups.has(prevSib)) {
+                        // [Esc]: skip prefix on first arc from this box (box name was just spoken), instead prefix with "which, "
+                        if (!boxesWithArcSpoken.has(prevSib)) {
+                            boxesWithArcSpoken.add(prevSib);
+                            if (prevSib !== rootBoxNode && animatedNodeData[i].text) {
+                                animatedNodeData[i].text = 'which, ' + animatedNodeData[i].text;
+                            }
+                        } else {
+                            var boxNameEl = Array.from(prevSib.querySelectorAll('text')).find(function (t) {
+                                return !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden');
+                            });
+                            if (boxNameEl) {
+                                var boxName = boxNameEl.textContent.trim();
+                                if (boxName && animatedNodeData[i].text) {
+                                    animatedNodeData[i].text = boxName + ', ' + animatedNodeData[i].text;
+                                }
+                            }
+                        }
+
+                        // Postfix target box name if target box is already present
+                        var tgtId = node.getAttribute('data-highlight-target');
+                        if (tgtId) {
+                            var tgtNode = document.getElementById(tgtId);
+                            var tgtGroup = tgtNode;
+                            if (tgtGroup && !tgtGroup.querySelector(':scope > rect')) {
+                                tgtGroup = Array.from(tgtGroup.querySelectorAll('.collapsible-group')).find(function (g) {
+                                    return g.querySelector(':scope > rect') !== null;
+                                }) || tgtGroup;
+                            }
+                            if (tgtGroup && seenBoxGroups.has(tgtGroup)) {
+                                var tgtBoxNameEl = Array.from(tgtGroup.querySelectorAll('text')).find(function (t) {
+                                    return !t.classList.contains('collapsible-trigger') && !t.classList.contains('visually-hidden');
+                                });
+                                if (tgtBoxNameEl) {
+                                    var tgtBoxName = tgtBoxNameEl.textContent.trim();
+                                    if (tgtBoxName && animatedNodeData[i].text) {
+                                        if (animatedNodeData[i].text.toLowerCase().indexOf(tgtBoxName.toLowerCase()) === -1) {
+                                            animatedNodeData[i].text = animatedNodeData[i].text + ' ' + tgtBoxName;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // [Esc]: standalone arc outside tree structure is a visual duplicate — skip during animation
+                        node.setAttribute('data-skip-animation', 'true');
+                    }
+                }
+            }
+        }
+    }
+
+    // [Scan]: to normalize text for coupling-target mapping (robust across punctuation and whitespace).
+    function normalizeText(t) {
+        return (t || '').toString().trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    // [Scan]: to merge empty Graphviz edges with their target nodes to eliminate 500ms stutters
+    for (var i = 0; i < animatedNodes.length; i++) {
+        var isGraphvizEdge = animatedNodes[i].classList.contains('edge') || animatedNodes[i].querySelector('.edge');
+        // [Opt]: to apply when isGraphvizEdge && animatedNodeData[i].text === '')
+        if (isGraphvizEdge && animatedNodeData[i].text === '') {
+            var tgtId = animatedNodes[i].getAttribute('data-highlight-target');
+            // [Opt]: to apply when tgtId) {
+            if (tgtId) {
+                var tgtNode = document.getElementById(tgtId);
+                var tgtGroup = tgtNode ? tgtNode.closest('.collapsible-group') : null;
+                var tgtData = tgtGroup ? nodeDataByNode.get(tgtGroup) : null;
+                // [Opt]: to apply when tgtNode && tgtData && tgtData.text) {
+                if (tgtGroup && tgtData && tgtData.text) {
+                    animatedNodeData[i].text = tgtData.text;
+                    tgtGroup.setAttribute('data-skip-animation', 'true');
+                }
+            }
+        }
+    }
+
+    // [Scan]: to remove connector-only or coupling-target nodes from the playback queue.
+    var couplingTargets = new Set();
+    animatedNodeData.forEach(function (d) {
+        // [Esc]: to handle !d !text of d
+        if (!d || !d.text) return;
+        var match = d.text.match(/(?:is )?coupled by\s+(.+?)\s+with/i);
+        // [Opt]: to handle match match 1
+        if (match && match[1]) {
+            couplingTargets.add(normalizeText(match[1]));
+        }
+    });
+
+    var filteredAnimatedNodes = [];
+    var filteredAnimatedNodeData = [];
+    for (var j = 0; j < animatedNodes.length; j++) {
+        var candidateText = (animatedNodeData[j] && animatedNodeData[j].text) ? animatedNodeData[j].text.trim() : '';
+        var candidateNormalized = normalizeText(candidateText);
+        var isInjectedRequires = (animatedNodes[j] && animatedNodes[j].getAttribute && animatedNodes[j].getAttribute('data-injected-requires') === 'true');
+        var isRealEdge = (animatedNodes[j].classList.contains('edge') || animatedNodes[j].querySelector('.edge') !== null);
+
+        // [Esc]: to handle !candidate Text !is Real Edge candidate Normalized equals = requires is Injected Requires has of coupling Targets candidate Normalized
+        if ((!candidateText && !isRealEdge) || (candidateNormalized === 'requires' && isInjectedRequires) || couplingTargets.has(candidateNormalized)) {
+
+            continue;
+        }
+
+        // [Esc]: to handle animated Nodes j .get Attribute data-skip-animation equals = true
+        if (animatedNodes[j].getAttribute('data-skip-animation') === 'true') {
+
+            continue;
+        }
+
+        filteredAnimatedNodes.push(animatedNodes[j]);
+        filteredAnimatedNodeData.push(animatedNodeData[j]);
+    }
+    animatedNodes = filteredAnimatedNodes;
+    animatedNodeData = filteredAnimatedNodeData;
+    // [Esc]: length of animated Nodes equals rest
+    if (animatedNodes.length === 0) {
+
+        return;
+    }
+
+
+
+    var isTree = (typeof window.NABU_VISUAL_NAME !== 'undefined' && window.NABU_VISUAL_NAME && (window.NABU_VISUAL_NAME.indexOf('Requirement Tree') !== -1));
+    // [Esc]: is Tree
+    if (isTree) {
+        var lastColumnValue = -1;
+        for (var k = 0; k < animatedNodes.length; k++) {
+            var currNodeData = animatedNodeData[k];
+            var currentColumnValue = 0;
+
+            var triggerNode = animatedNodes[k].querySelector('.collapsible-trigger');
+            if (triggerNode) {
+                currentColumnValue = parseFloat(triggerNode.getAttribute('x') || '0');
+            } else {
+                var firstText = Array.from(animatedNodes[k].querySelectorAll('text')).find(function (t) {
+                    return t.closest('.collapsible-group') === animatedNodes[k] && !t.closest('.descriptor-cells') && !t.classList.contains('visually-hidden');
+                });
+                if (firstText) {
+                    currentColumnValue = parseFloat(firstText.getAttribute('x') || '0');
+                } else {
+                    try { currentColumnValue = animatedNodes[k].getBBox().x; } catch (e) { }
+                }
+            }
+
+            if (lastColumnValue !== -1) {
+                if (currentColumnValue < lastColumnValue - 5) {
+                    if (currNodeData.text && !currNodeData.text.match(/^back and/i) && !currNodeData.text.match(/returns/i) && !currNodeData.text.match(/\(already expanded\)/i)) {
+                        currNodeData.text = "back and " + currNodeData.text;
+                    }
+                } else if (Math.abs(currentColumnValue - lastColumnValue) <= 5) {
+                    if (currNodeData.text && !currNodeData.text.match(/^and/i) && !currNodeData.text.match(/^back and/i) && !currNodeData.text.match(/returns/i)) {
+                        currNodeData.text = "and " + currNodeData.text;
+                    }
+                } else if (currentColumnValue > lastColumnValue + 5) {
+                    if (currNodeData.text && currNodeData.text.match(/requires/i) && !currNodeData.text.match(/alternative/i)) {
+                        if (currNodeData.text.match(/^requires/i)) {
+                            currNodeData.text = "which " + currNodeData.text;
+                        } else {
+                            currNodeData.text = "which, " + currNodeData.text;
+                        }
+                    }
+                }
+            }
+            lastColumnValue = currentColumnValue;
+        }
+    }
+
+    // [Opt]: to optional: reduce to navigational chain by data-highlight-target to avoid stray side nodes in complex charts.
+    try {
+        var targetIds = new Set();
+        animatedNodes.forEach(function (n) {
+            var t = n.getAttribute('data-highlight-target');
+            // [Opt]: to handle t
+            if (t) targetIds.add(t);
+        });
+
+        var startCandidates = animatedNodes.filter(function (n) {
+            return !n.id || !targetIds.has(n.id);
+        });
+
+        // [Opt]: to handle length of start Candidates greater than 0
+        if (startCandidates.length > 0) {
+            var chain = [];
+            var visited = new Set();
+            var current = startCandidates[0];
+
+            while (current && !visited.has(current)) {
+                chain.push(current);
+                visited.add(current);
+                var nextTargetId = current.getAttribute('data-highlight-target');
+                // [Esc]: to handle !next Target Id
+                if (!nextTargetId) break;
+                var next = document.getElementById(nextTargetId);
+                // [Esc]: to handle !next
+                if (!next) break;
+                var nextGroup = next.closest('.collapsible-group');
+                // [Esc]: to handle !next Group has of visited next Group
+                if (!nextGroup || visited.has(nextGroup)) break;
+                current = nextGroup;
+            }
+
+            // [Alt]: to handle false length of chain greater than 1 length of chain less than length of animated Nodes
+            if (false && chain.length > 1 && chain.length < animatedNodes.length) {
+                animatedNodes = chain;
+                animatedNodeData = chain.map(function (node) { return nodeDataByNode.get(node); });
+
+                // [Alt]: to handle not false length of chain greater than 1 length of chain less than length of animated Nodes
+            } else {
+                // [Opt]: to handle length of chain greater than 0 length of chain ! equals length of animated Nodes
+                if (chain.length > 0 && chain.length !== animatedNodes.length) {
+
+                }
+            }
+        }
+        // [Esc Warning]: "e"
+    } catch (e) {
+
+    }
+
+    currentAnimationSequenceId++;
+    nabuLatestSpeechSequenceId = currentAnimationSequenceId;
+    nabuLatestSpeechToken++;
+
+    collapseAllForAnimation();
+    currentAnimationIndex = -1;
+    animateNextStep(currentAnimationSequenceId);
+}
+
+/**
+ * to stop Visual Animation
+ */
+function stopAnimation() {
+
+
+    isAnimationActive = false;
+    clearTimeout(animationTimer);
+
+    // [Scan]: to do not call window.speechSynthesis.cancel() unconditionally (Win11 Chrome/Edge lockup).
+    // [Scan]: to use sequence token guards while letting native speech drain safely.
+    nabuAnimationBlocked = true;
+    currentAnimationSequenceId = -1;
+    nabuLatestSpeechSequenceId = -1;
+    nabuLatestSpeechToken++;
+
+
+
+    // [Opt]: to apply when nabuActiveSpeechUtterance) {
+    if (nabuActiveSpeechUtterance) {
+        nabuActiveSpeechUtterance.onend = function () { };
+        nabuActiveSpeechUtterance.onerror = function () { };
+        nabuActiveSpeechUtterance = null;
+    }
+
+    // [Opt]: to apply when window._activeSapiMsg) {
+    if (window._activeSapiMsg) {
+        window._activeSapiMsg.onend = function () { };
+        window._activeSapiMsg.onerror = function () { };
+        window._activeSapiMsg = null;
+    }
+
+    // [Opt]: to apply when window.speechSynthesis) {
+    if (window.speechSynthesis) {
+        // [Alt]: to use pause/resume rather than cancel to avoid the known WebSpeech audio device deadlock.
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+            // [Guard]: to do RENAME ME vectorGraphic 1420 0000
+            try {
+                window.speechSynthesis.pause();
+                setTimeout(function () {
+                    // [Guard]: to do RENAME ME vectorGraphic 1424 0000
+                    // [Esc Warning]: "e"
+                    try { window.speechSynthesis.resume(); } catch (e) { }
+                }, 100);
+                // [Esc Warning]: "e"
+            } catch (e) {
+
+            }
+        }
+
+        // [Scan]: to full cleanup chain to reset the browser's audio path.
+        setTimeout(function () {
+            // [Opt]: to handle speaking of speech Synthesis of window pending of speech Synthesis of window
+            if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+                // [Scan]: to do NOT cancel here if we know it re-triggers the mute in this environment.
+
+            }
+
+            // [Opt]: to inject a near-silent utterance to wake audio routing on buggy browsers (avoid volume=0 deadlock).
+            try {
+                var flushUtterance = new SpeechSynthesisUtterance('\u200B');
+                flushUtterance.volume = 0.0;
+                flushUtterance.rate = 1.0;
+                flushUtterance.pitch = 1.0;
+                flushUtterance.onend = function () { };
+                window.speechSynthesis.speak(flushUtterance);
+            } catch (e) { }
+        }, 200);
+    }
+
+    // [Opt]: to apply when currentAnimationIndex >= 0 && currentAnimationInde
+    if (currentAnimationIndex >= 0 && currentAnimationIndex < animatedNodes.length) {
+        highlightNode(animatedNodes[currentAnimationIndex], false);
+    }
+    expandAllNodes();
+
+    // [Scan]: to clear pre-extracted data - CRITICAL: prevent stale onend handlers from accessing this
+    animatedNodeData = [];
+    animatedNodes = [];
+
+
+
+    var animWand = document.getElementById('animWand');
+    // [Opt]: to reset wand button icon
+    if (animWand) animWand.textContent = '\u{1FA84}';
+}
+
+/**
+ * to INITIALIZE Visual Animation
+ */
+function initAnimation() {
+    clearTimeout(animationTimer);
+
+    var animInput = document.getElementById('animInterval');
+
+    // [Opt]: to apply when animInput) {
+    if (animInput) {
+        var val = parseFloat(animInput.value);
+        // [Opt]: to apply when !isNaN(val)) {
+        if (!isNaN(val)) {
+            animationInterval = val * 1000;
+        }
+        animInput.onchange = function () {
+            setAnimationInterval(this.value);
+        };
+    }
+
+    animatedNodes = Array.from(document.querySelectorAll('g.collapsible-group')).filter(function (node) {
+        var p = node.closest('div');
+        // [Esc]: to handle p style of p display of style of p equals = none
+        if (p && p.style && p.style.display === 'none') return false;
+        var shape = node.querySelector('rect, polyline, polygon, line, path, circle, ellipse, text');
+        return shape && shape.closest('.collapsible-group') === node;
+    });
+
+    // [Opt]: to apply when baselineDisplayStates.length === 0) {
+    if (baselineDisplayStates.length === 0) {
+        document.querySelectorAll('g.collapsible-group, g.cluster').forEach(function (g) {
+            baselineDisplayStates.push({
+                el: g,
+                display: g.style.display || ''
+            });
+        });
+    }
+
+    // [Alt]: to automate animation at page open
+    if (false && animationInterval > 0 && animatedNodes.length > 0) {
+        animationTimer = setTimeout(function () {
+            startAnimation(true);
+        }, animationInterval);
+    }
+}
+
+/**
+ * to set Visual Animation interval
+ * - Input: Interval in seconds
+ */
+function setAnimationInterval(seconds) {
+    var val = parseFloat(seconds);
+    animationInterval = isNaN(val) ? 0 : val * 1000;
+
+    var animWand = document.getElementById('animWand');
+
+    // [Alt "(animationInterval <= 0)"]: to apply when animationInterval <= 0
+    if (animationInterval <= 0) {
+        // [Opt]: to reset wand button icon
+        if (animWand) animWand.textContent = '\u{1FA84}';
+        stopAnimation();
+        // [Alt "not (animationInterval <= 0)"]: to apply when not (animationInterval <= 0
+    } else {
+        // [Opt]: to handle is Animation Active
+        if (isAnimationActive) {
+            // [Scan]: to already active, let it continue
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initAnimation();
+});
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && isAnimationActive) {
+        var animWand = document.getElementById('animWand');
+        if (animWand) animWand.textContent = '\u{1FA84}';
+        stopAnimation();
+        var popup = document.getElementById('nabu-animation-popup');
+        if (popup) popup.style.display = 'none';
+    }
+});
+//]]>
+</script>
+
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto">
+            <path d="M 0,0 L 10,5 L 0,10 L 3,5 Z" style="stroke:Red; fill:Red; stroke-width:1" />
+        </marker>
+    </defs>
+       <!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_12">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="94" x="137" y="888" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="94" x="141" y="884" rx="0" ry="0" fill="#ececf9" stroke="#262673" stroke-width="1" />
+<g>
+<text x="221" y="937" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="230" y="936" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">
+	<tspan xml:space="preserve" x="230" y="936" dx="0" dy="0.0em">to define My DSL Schema</tspan>
+</text>
+</g>
+<line x1="142" y1="888" x2="142" y2="902" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="912" x2="142" y2="926" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="936" x2="142" y2="950" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="960" x2="142" y2="974" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_9">
+<!-- WireArc -->
+<polyline points="133,890 108,890 108,886 96,897 108,908 108,904 133,904 130,897 133,890" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,888 110,888 110,884 98,895 110,906 110,902 135,902 132,895 135,888" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="112" y="898" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">iter</text>
+<line x1="97" y1="896" x2="89" y2="893" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="889" x2="85" y2="868" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="868" x2="89" y2="864" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,896 89,893 85,889 85,868 89,864 100,863" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,858 122,858 122,854 134,865 122,876 122,872 97,872 100,865 97,858" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,856 125,856 125,852 137,863 125,874 125,870 100,870 103,863 100,856" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_9">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="94" x="137" y="784" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="94" x="141" y="780" rx="0" ry="0" fill="#e6eeff" stroke="#002b80" stroke-width="1" />
+<g>
+<text x="229" y="833" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="238" y="832" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="238" y="832" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to edit My DSL Schema</a></tspan>
+</text>
+</g>
+<line x1="142" y1="784" x2="142" y2="798" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="808" x2="142" y2="822" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="832" x2="142" y2="846" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="856" x2="142" y2="870" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="784" x2="473" y2="798" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_3">
+<!-- WireArc -->
+<polyline points="133,786 108,786 108,782 96,793 108,804 108,800 133,800 130,793 133,786" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,784 110,784 110,780 98,791 110,802 110,798 135,798 132,791 135,784" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<text x="112" y="794" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">opt</text>
+<line x1="97" y1="792" x2="89" y2="789" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="785" x2="85" y2="764" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="764" x2="89" y2="760" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,792 89,789 85,785 85,764 89,760 100,759" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,754 122,754 122,750 134,761 122,772 122,768 97,768 100,761 97,754" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,752 125,752 125,748 137,759 125,770 125,766 100,766 103,759 100,752" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_3">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="22" x="137" y="752" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="22" x="141" y="748" rx="0" ry="0" fill="#e6ffff" stroke="#004d4d" stroke-width="1" />
+<g>
+<text x="153" y="765" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="162" y="764" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="162" y="764" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to cut repeating Fact hierarchy in my Schema</a></tspan>
+</text>
+</g>
+<line x1="142" y1="752" x2="142" y2="766" stroke="#004d4d" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_1">
+<!-- WireArc -->
+<polyline points="133,810 108,810 108,806 96,817 108,828 108,824 133,824 130,817 133,810" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,808 110,808 110,804 98,815 110,826 110,822 135,822 132,815 135,808" stroke="#004d4d" stroke-width="1" stroke-dasharray="none"  fill="#e6ffff" />
+<text x="112" y="818" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">opt</text>
+<line x1="97" y1="816" x2="74" y2="810" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="806" x2="70" y2="733" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="733" x2="74" y2="729" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,816 74,810 70,806 70,733 74,729 100,727" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,722 122,722 122,718 134,729 122,740 122,736 97,736 100,729 97,722" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,720 125,720 125,716 137,727 125,738 125,734 100,734 103,727 100,720" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_1">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="22" x="137" y="720" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="22" x="141" y="716" rx="0" ry="0" fill="#f1fdf1" stroke="#004d00" stroke-width="1" />
+<g>
+<text x="183" y="733" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="192" y="732" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="192" y="732" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to modify Fact in My DSL Vocabulary</a></tspan>
+</text>
+</g>
+<line x1="142" y1="720" x2="142" y2="734" stroke="#004d00" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="720" x2="473" y2="734" stroke="#004d00" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_2">
+<!-- WireArc -->
+<polyline points="133,834 108,834 108,830 96,841 108,852 108,848 133,848 130,841 133,834" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,832 110,832 110,828 98,839 110,850 110,846 135,846 132,839 135,832" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<text x="112" y="842" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">opt</text>
+<line x1="97" y1="840" x2="29" y2="825" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="25" y1="821" x2="25" y2="463" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="25" y1="463" x2="29" y2="459" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,840 29,825 25,821 25,463 29,459 100,455" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,450 122,450 122,446 134,457 122,468 122,464 97,464 100,457 97,450" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,448 125,448 125,444 137,455 125,466 125,462 100,462 103,455 100,448" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_2">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="142" x="137" y="376" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="142" x="141" y="372" rx="0" ry="0" fill="#ffe6e6" stroke="Maroon" stroke-width="1" />
+<g>
+<text x="194" y="449" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="203" y="448" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="203" y="448" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to add Fact to My DSL vocabulary</a></tspan>
+</text>
+</g>
+<line x1="142" y1="376" x2="142" y2="390" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="400" x2="142" y2="414" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="424" x2="142" y2="438" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="448" x2="142" y2="462" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="472" x2="142" y2="486" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="496" x2="142" y2="510" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="376" x2="473" y2="390" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_8">
+<!-- WireArc -->
+<polyline points="133,378 108,378 108,374 96,385 108,396 108,392 133,392 130,385 133,378" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,376 110,376 110,372 98,383 110,394 110,390 135,390 132,383 135,376" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<line x1="97" y1="384" x2="89" y2="381" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="377" x2="85" y2="308" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="308" x2="89" y2="304" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,384 89,381 85,377 85,308 89,304 100,303" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,298 122,298 122,294 134,305 122,316 122,312 97,312 100,305 97,298" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,296 125,296 125,292 137,303 125,314 125,310 100,310 103,303 100,296" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_8">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="70" x="137" y="296" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="70" x="141" y="292" rx="0" ry="0" fill="#ffeaff" stroke="purple" stroke-width="1" />
+<g>
+<text x="236" y="333" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="245" y="332" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="245" y="332" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to document my Fact</a></tspan>
+</text>
+</g>
+<line x1="142" y1="296" x2="142" y2="310" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="296" x2="473" y2="310" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="320" x2="473" y2="334" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="344" x2="473" y2="358" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_7">
+<!-- WireArc -->
+<polyline points="475,298 598,298 598,294 610,305 598,316 598,312 475,312 478,305 475,298" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,296 601,296 601,292 613,303 601,314 601,310 478,310 481,303 478,296" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<line x1="616" y1="304" x2="624" y2="301" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="297" x2="628" y2="273" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="273" x2="609" y2="271" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,304 624,301 628,297 628,273 609,271" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,266 486,266 486,262 474,273 486,284 486,280 609,280 606,273 609,266" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,264 488,264 488,260 476,271 488,282 488,278 611,278 608,271 611,264" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<text x="488" y="274" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [documented]</text>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_7">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="142" x="137" y="144" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="142" x="141" y="140" rx="0" ry="0" fill="#ececf9" stroke="#262673" stroke-width="1" />
+<g>
+<text x="200" y="217" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="209" y="216" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="209" y="216" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to define my Fact label modifier</a></tspan>
+</text>
+</g>
+<line x1="142" y1="144" x2="142" y2="158" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="168" x2="142" y2="182" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="144" x2="473" y2="158" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="168" x2="473" y2="182" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="192" x2="473" y2="206" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="216" x2="473" y2="230" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="240" x2="473" y2="254" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="264" x2="473" y2="278" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_13">
+<!-- WireArc -->
+<polyline points="133,146 108,146 108,142 96,153 108,164 108,160 133,160 130,153 133,146" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,144 110,144 110,140 98,151 110,162 110,158 135,158 132,151 135,144" stroke="sienna" stroke-width="1" stroke-dasharray="none"  fill="#f9f0eb" />
+<line x1="97" y1="152" x2="59" y2="161" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="55" y1="165" x2="55" y2="529" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="55" y1="529" x2="59" y2="533" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,152 59,161 55,165 55,529 59,533 100,535" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,530 122,530 122,526 134,537 122,548 122,544 97,544 100,537 97,530" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,528 125,528 125,524 137,535 125,546 125,542 100,542 103,535 100,528" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_13">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="46" x="137" y="528" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="46" x="141" y="524" rx="0" ry="0" fill="White" stroke="Black" stroke-width="1" />
+<text x="223" y="552" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="223" y="552" dx="77" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">...</a></tspan>
+</text>
+<line x1="142" y1="528" x2="142" y2="542" stroke="Black" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="552" x2="142" y2="566" stroke="Black" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="475,146 598,146 598,142 610,153 598,164 598,160 475,160 478,153 475,146" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,144 601,144 601,140 613,151 601,162 601,158 478,158 481,151 478,144" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="616" y1="152" x2="624" y2="149" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="145" x2="628" y2="121" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="121" x2="609" y2="119" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,152 624,149 628,145 628,121 609,119" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,114 486,114 486,110 474,121 486,132 486,128 609,128 606,121 609,114" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,112 488,112 488,108 476,119 488,130 488,126 611,126 608,119 611,112" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="488" y="122" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [flexible]</text>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_5">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="94" x="137" y="40" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="94" x="141" y="36" rx="0" ry="0" fill="#e6eeff" stroke="#002b80" stroke-width="1" />
+<text x="171" y="88" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="171" y="88" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to position Fact in the schema hierarchy</a></tspan>
+</text>
+<line x1="142" y1="40" x2="142" y2="54" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="40" x2="473" y2="54" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="64" x2="473" y2="78" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="88" x2="473" y2="102" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="112" x2="473" y2="126" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_6">
+<!-- WireArc -->
+<polyline points="475,218 598,218 598,214 610,225 598,236 598,232 475,232 478,225 475,218" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,216 601,216 601,212 613,223 601,234 601,230 478,230 481,223 478,216" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+<line x1="616" y1="224" x2="669" y2="236" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="673" y1="240" x2="673" y2="585" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="673" y1="585" x2="609" y2="591" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,224 669,236 673,240 673,585 609,591" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,586 486,586 486,582 474,593 486,604 486,600 609,600 606,593 609,586" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,584 488,584 488,580 476,591 488,602 488,598 611,598 608,591 611,584" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="488" y="594" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [flexible]</text>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_6">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="70" x="137" y="584" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="70" x="141" y="580" rx="0" ry="0" fill="#f9f0eb" stroke="sienna" stroke-width="1" />
+<g>
+<text x="246" y="621" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="255" y="620" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="255" y="620" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to specify my Fact</a></tspan>
+</text>
+</g>
+<line x1="142" y1="584" x2="142" y2="598" stroke="sienna" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="608" x2="142" y2="622" stroke="sienna" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="584" x2="473" y2="598" stroke="sienna" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="608" x2="473" y2="622" stroke="sienna" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="632" x2="473" y2="646" stroke="sienna" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_13">
+<!-- WireArc -->
+<polyline points="133,586 108,586 108,582 96,593 108,604 108,600 133,600 130,593 133,586" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,584 110,584 110,580 98,591 110,602 110,598 135,598 132,591 135,584" stroke="sienna" stroke-width="1" stroke-dasharray="none"  fill="#f9f0eb" />
+<line x1="97" y1="592" x2="89" y2="589" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="585" x2="85" y2="564" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="564" x2="89" y2="560" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,592 89,589 85,585 85,564 89,560 100,559" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,554 122,554 122,550 134,561 122,572 122,568 97,568 100,561 97,554" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,552 125,552 125,548 137,559 125,570 125,566 100,566 103,559 100,552" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_7">
+<!-- WireArc -->
+<polyline points="475,610 598,610 598,606 610,617 598,628 598,624 475,624 478,617 475,610" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,608 601,608 601,604 613,615 601,626 601,622 478,622 481,615 478,608" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<line x1="616" y1="616" x2="684" y2="601" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="688" y1="597" x2="688" y2="207" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="688" y1="207" x2="609" y2="199" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,616 684,601 688,597 688,207 609,199" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,194 486,194 486,190 474,201 486,212 486,208 609,208 606,201 609,194" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,192 488,192 488,188 476,199 488,210 488,206 611,206 608,199 611,192" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+<text x="488" y="202" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [parametrized]</text>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="475,634 598,634 598,630 610,641 598,652 598,648 475,648 478,641 475,634" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,632 601,632 601,628 613,639 601,650 601,646 478,646 481,639 478,632" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="616" y1="640" x2="699" y2="622" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="703" y1="618" x2="703" y2="80" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="703" y1="80" x2="609" y2="71" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,640 699,622 703,618 703,80 609,71" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,66 486,66 486,62 474,73 486,84 486,80 609,80 606,73 609,66" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,64 488,64 488,60 476,71 488,82 488,78 611,78 608,71 611,64" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+<text x="488" y="74" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [parametrized]</text>
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_8">
+<!-- WireArc -->
+<polyline points="475,242 598,242 598,238 610,249 598,260 598,256 475,256 478,249 475,242" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,240 601,240 601,236 613,247 601,258 601,254 478,254 481,247 478,240" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<line x1="616" y1="248" x2="639" y2="254" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="643" y1="258" x2="643" y2="324" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="643" y1="324" x2="609" y2="327" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,248 639,254 643,258 643,324 609,327" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,322 486,322 486,318 474,329 486,340 486,336 609,336 606,329 609,322" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,320 488,320 488,316 476,327 488,338 488,334 611,334 608,327 611,320" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="488" y="330" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [flexible]</text>
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="475,346 598,346 598,342 610,353 598,364 598,360 475,360 478,353 475,346" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,344 601,344 601,340 613,351 601,362 601,358 478,358 481,351 478,344" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="616" y1="352" x2="654" y2="343" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="658" y1="339" x2="658" y2="100" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="658" y1="100" x2="609" y2="95" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,352 654,343 658,339 658,100 609,95" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,90 486,90 486,86 474,97 486,108 486,104 609,104 606,97 609,90" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,88 488,88 488,84 476,95 488,106 488,102 611,102 608,95 611,88" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<text x="488" y="98" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [documented]</text>
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_7">
+<!-- WireArc -->
+<polyline points="133,402 108,402 108,398 96,409 108,420 108,416 133,416 130,409 133,402" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,400 110,400 110,396 98,407 110,418 110,414 135,414 132,407 135,400" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="112" y="410" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">opt</text>
+<line x1="97" y1="408" x2="74" y2="402" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="398" x2="70" y2="181" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="181" x2="74" y2="177" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,408 74,402 70,398 70,181 74,177 100,175" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,170 122,170 122,166 134,177 122,188 122,184 97,184 100,177 97,170" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,168 125,168 125,164 137,175 125,186 125,182 100,182 103,175 100,168" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="133,426 108,426 108,422 96,433 108,444 108,440 133,440 130,433 133,426" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,424 110,424 110,420 98,431 110,442 110,438 135,438 132,431 135,424" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="97" y1="432" x2="44" y2="420" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="40" y1="416" x2="40" y2="54" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="40" y1="54" x2="44" y2="50" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,432 44,420 40,416 40,54 44,50 100,47" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,42 122,42 122,38 134,49 122,60 122,56 97,56 100,49 97,42" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,40 125,40 125,36 137,47 125,58 125,54 100,54 103,47 100,40" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_4">
+<!-- WireArc -->
+<polyline points="133,474 108,474 108,470 96,481 108,492 108,488 133,488 130,481 133,474" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,472 110,472 110,468 98,479 110,490 110,486 135,486 132,479 135,472" stroke="#004d00" stroke-width="1" stroke-dasharray="none"  fill="#f1fdf1" />
+<line x1="97" y1="480" x2="44" y2="492" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="40" y1="496" x2="40" y2="664" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="40" y1="664" x2="44" y2="668" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,480 44,492 40,496 40,664 44,668 100,671" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,666 122,666 122,662 134,673 122,684 122,680 97,680 100,673 97,666" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,664 125,664 125,660 137,671 125,682 125,678 100,678 103,671 100,664" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_4">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="46" x="137" y="664" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="46" x="141" y="660" rx="0" ry="0" fill="#f7fceb" stroke="#394d00" stroke-width="1" />
+<g>
+<text x="248" y="689" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="257" y="688" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="257" y="688" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to define my Fact</a></tspan>
+</text>
+</g>
+<line x1="142" y1="664" x2="142" y2="678" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="664" x2="473" y2="678" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="688" x2="473" y2="702" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_7">
+<!-- WireArc -->
+<polyline points="475,666 598,666 598,662 610,673 598,684 598,680 475,680 478,673 475,666" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,664 601,664 601,660 613,671 601,682 601,678 478,678 481,671 478,664" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<line x1="616" y1="672" x2="714" y2="651" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="718" y1="647" x2="718" y2="186" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="718" y1="186" x2="609" y2="175" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,672 714,651 718,647 718,186 609,175" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,170 486,170 486,166 474,177 486,188 486,184 609,184 606,177 609,170" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,168 488,168 488,164 476,175 488,186 488,182 611,182 608,175 611,168" stroke="#004d00" stroke-width="1" stroke-dasharray="none"  fill="#f1fdf1" />
+<text x="488" y="178" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [labeled]</text>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="475,690 598,690 598,686 610,697 598,708 598,704 475,704 478,697 475,690" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,688 601,688 601,684 613,695 601,706 601,702 478,702 481,695 478,688" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="616" y1="696" x2="729" y2="672" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="733" y1="668" x2="733" y2="59" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="733" y1="59" x2="609" y2="47" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,696 729,672 733,668 733,59 609,47" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,42 486,42 486,38 474,49 486,60 486,56 609,56 606,49 609,42" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,40 488,40 488,36 476,47 488,58 488,54 611,54 608,47 611,40" stroke="#004d00" stroke-width="1" stroke-dasharray="none"  fill="#f1fdf1" />
+<text x="488" y="50" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [labeled]</text>
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_6">
+<!-- WireArc -->
+<polyline points="133,498 108,498 108,494 96,505 108,516 108,512 133,512 130,505 133,498" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,496 110,496 110,492 98,503 110,514 110,510 135,510 132,503 135,496" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+<text x="112" y="506" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">opt</text>
+<line x1="97" y1="504" x2="74" y2="510" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="514" x2="70" y2="609" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="609" x2="74" y2="613" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,504 74,510 70,514 70,609 74,613 100,615" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,610 122,610 122,606 134,617 122,628 122,624 97,624 100,617 97,610" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,608 125,608 125,604 137,615 125,626 125,622 100,622 103,615 100,608" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_1">
+<!-- WireArc -->
+<polyline points="475,378 598,378 598,374 610,385 598,396 598,392 475,392 478,385 475,378" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,376 601,376 601,372 613,383 601,394 601,390 478,390 481,383 478,376" stroke="#004d4d" stroke-width="1" stroke-dasharray="none"  fill="#e6ffff" />
+<line x1="616" y1="384" x2="624" y2="387" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="391" x2="628" y2="726" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="726" x2="609" y2="727" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,384 624,387 628,391 628,726 609,727" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,722 486,722 486,718 474,729 486,740 486,736 609,736 606,729 609,722" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,720 488,720 488,716 476,727 488,738 488,734 611,734 608,727 611,720" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<text x="488" y="730" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [registered]</text>
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_10">
+<!-- WireArc -->
+<polyline points="475,786 598,786 598,782 610,793 598,804 598,800 475,800 478,793 475,786" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,784 601,784 601,780 613,791 601,802 601,798 478,798 481,791 478,784" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<text x="488" y="794" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">(percolated)</text>
+<line x1="616" y1="792" x2="624" y2="795" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="799" x2="628" y2="998" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="998" x2="609" y2="999" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,792 624,795 628,799 628,998 609,999" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,994 486,994 486,990 474,1001 486,1012 486,1008 609,1008 606,1001 609,994" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,992 488,992 488,988 476,999 488,1010 488,1006 611,1006 608,999 611,992" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="488" y="1002" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">My DSL Schema snippet</text>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_10">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="46" x="137" y="992" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="46" x="141" y="988" rx="0" ry="0" fill="#ffeaff" stroke="purple" stroke-width="1" />
+<g>
+<text x="256" y="1017" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="265" y="1016" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="265" y="1016" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to load schema</a></tspan>
+</text>
+</g>
+<line x1="142" y1="992" x2="142" y2="1006" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="992" x2="473" y2="1006" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="1016" x2="473" y2="1030" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_11">
+<!-- WireArc -->
+<polyline points="475,1018 598,1018 598,1014 610,1025 598,1036 598,1032 475,1032 478,1025 475,1018" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,1016 601,1016 601,1012 613,1023 601,1034 601,1030 478,1030 481,1023 478,1016" stroke="sienna" stroke-width="1" stroke-dasharray="none"  fill="#f9f0eb" />
+<line x1="616" y1="1024" x2="624" y2="1027" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="1031" x2="628" y2="1054" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="1054" x2="609" y2="1055" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,1024 624,1027 628,1031 628,1054 609,1055" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,1050 486,1050 486,1046 474,1057 486,1068 486,1064 609,1064 606,1057 609,1050" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,1048 488,1048 488,1044 476,1055 488,1066 488,1062 611,1062 608,1055 611,1048" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<text x="488" y="1058" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Protonabu Schema AST</text>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_11">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="22" x="137" y="1048" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="22" x="141" y="1044" rx="0" ry="0" fill="#ffe6e6" stroke="Maroon" stroke-width="1" />
+<text x="189" y="1060" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="189" y="1060" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to design My Domain Object Model</a></tspan>
+</text>
+<line x1="142" y1="1048" x2="142" y2="1062" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="1048" x2="473" y2="1062" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_14">
+<!-- WireArc -->
+<polyline points="133,914 108,914 108,910 96,921 108,932 108,928 133,928 130,921 133,914" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,912 110,912 110,908 98,919 110,930 110,926 135,926 132,919 135,912" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+<line x1="97" y1="920" x2="59" y2="929" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="55" y1="933" x2="55" y2="1081" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="55" y1="1081" x2="59" y2="1085" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,920 59,929 55,933 55,1081 59,1085 100,1087" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,1082 122,1082 122,1078 134,1089 122,1100 122,1096 97,1096 100,1089 97,1082" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,1080 125,1080 125,1076 137,1087 125,1098 125,1094 100,1094 103,1087 100,1080" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_14">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="22" x="137" y="1080" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="22" x="141" y="1076" rx="0" ry="0" fill="White" stroke="Black" stroke-width="1" />
+<text x="216" y="1092" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="216" y="1092" dx="84" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">...</a></tspan>
+</text>
+<line x1="142" y1="1080" x2="142" y2="1094" stroke="Black" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_11">
+<!-- WireArc -->
+<polyline points="133,938 108,938 108,934 96,945 108,956 108,952 133,952 130,945 133,938" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,936 110,936 110,932 98,943 110,954 110,950 135,950 132,943 135,936" stroke="sienna" stroke-width="1" stroke-dasharray="none"  fill="#f9f0eb" />
+<line x1="97" y1="944" x2="74" y2="950" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="954" x2="70" y2="1049" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="1049" x2="74" y2="1053" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,944 74,950 70,954 70,1049 74,1053 100,1055" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,1050 122,1050 122,1046 134,1057 122,1068 122,1064 97,1064 100,1057 97,1050" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,1048 125,1048 125,1044 137,1055 125,1066 125,1062 100,1062 103,1055 100,1048" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_10">
+<!-- WireArc -->
+<polyline points="133,962 108,962 108,958 96,969 108,980 108,976 133,976 130,969 133,962" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,960 110,960 110,956 98,967 110,978 110,974 135,974 132,967 135,960" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<line x1="97" y1="968" x2="89" y2="971" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="975" x2="85" y2="994" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="994" x2="89" y2="998" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,968 89,971 85,975 85,994 89,998 100,999" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,994 122,994 122,990 134,1001 122,1012 122,1008 97,1008 100,1001 97,994" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,992 125,992 125,988 137,999 125,1010 125,1006 100,1006 103,999 100,992" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_5">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="94" x="137" y="40" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="94" x="141" y="36" rx="0" ry="0" fill="#e6eeff" stroke="#002b80" stroke-width="1" />
+<text x="171" y="88" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="171" y="88" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to position Fact in the schema hierarchy</a></tspan>
+</text>
+<line x1="142" y1="40" x2="142" y2="54" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="40" x2="473" y2="54" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="64" x2="473" y2="78" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="88" x2="473" y2="102" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="112" x2="473" y2="126" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_7">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="142" x="137" y="144" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="142" x="141" y="140" rx="0" ry="0" fill="#ececf9" stroke="#262673" stroke-width="1" />
+<g>
+<text x="200" y="217" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="209" y="216" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="209" y="216" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to define my Fact label modifier</a></tspan>
+</text>
+</g>
+<line x1="142" y1="144" x2="142" y2="158" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="168" x2="142" y2="182" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="144" x2="473" y2="158" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="168" x2="473" y2="182" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="192" x2="473" y2="206" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="216" x2="473" y2="230" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="240" x2="473" y2="254" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="264" x2="473" y2="278" stroke="#262673" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_13">
+<!-- WireArc -->
+<polyline points="133,146 108,146 108,142 96,153 108,164 108,160 133,160 130,153 133,146" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,144 110,144 110,140 98,151 110,162 110,158 135,158 132,151 135,144" stroke="sienna" stroke-width="1" stroke-dasharray="none"  fill="#f9f0eb" />
+<line x1="97" y1="152" x2="59" y2="161" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="55" y1="165" x2="55" y2="529" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="55" y1="529" x2="59" y2="533" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,152 59,161 55,165 55,529 59,533 100,535" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,530 122,530 122,526 134,537 122,548 122,544 97,544 100,537 97,530" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,528 125,528 125,524 137,535 125,546 125,542 100,542 103,535 100,528" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="475,146 598,146 598,142 610,153 598,164 598,160 475,160 478,153 475,146" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,144 601,144 601,140 613,151 601,162 601,158 478,158 481,151 478,144" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="616" y1="152" x2="624" y2="149" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="145" x2="628" y2="121" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="121" x2="609" y2="119" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,152 624,149 628,145 628,121 609,119" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,114 486,114 486,110 474,121 486,132 486,128 609,128 606,121 609,114" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,112 488,112 488,108 476,119 488,130 488,126 611,126 608,119 611,112" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="488" y="122" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [flexible]</text>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_6">
+<!-- WireArc -->
+<polyline points="475,218 598,218 598,214 610,225 598,236 598,232 475,232 478,225 475,218" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,216 601,216 601,212 613,223 601,234 601,230 478,230 481,223 478,216" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+<line x1="616" y1="224" x2="669" y2="236" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="673" y1="240" x2="673" y2="585" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="673" y1="585" x2="609" y2="591" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,224 669,236 673,240 673,585 609,591" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,586 486,586 486,582 474,593 486,604 486,600 609,600 606,593 609,586" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,584 488,584 488,580 476,591 488,602 488,598 611,598 608,591 611,584" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="488" y="594" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [flexible]</text>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_8">
+<!-- WireArc -->
+<polyline points="475,242 598,242 598,238 610,249 598,260 598,256 475,256 478,249 475,242" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,240 601,240 601,236 613,247 601,258 601,254 478,254 481,247 478,240" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<line x1="616" y1="248" x2="639" y2="254" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="643" y1="258" x2="643" y2="324" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="643" y1="324" x2="609" y2="327" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,248 639,254 643,258 643,324 609,327" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,322 486,322 486,318 474,329 486,340 486,336 609,336 606,329 609,322" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,320 488,320 488,316 476,327 488,338 488,334 611,334 608,327 611,320" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="488" y="330" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [flexible]</text>
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_8">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="70" x="137" y="296" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="70" x="141" y="292" rx="0" ry="0" fill="#ffeaff" stroke="purple" stroke-width="1" />
+<g>
+<text x="236" y="333" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="245" y="332" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="245" y="332" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to document my Fact</a></tspan>
+</text>
+</g>
+<line x1="142" y1="296" x2="142" y2="310" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="296" x2="473" y2="310" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="320" x2="473" y2="334" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="344" x2="473" y2="358" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_7">
+<!-- WireArc -->
+<polyline points="475,298 598,298 598,294 610,305 598,316 598,312 475,312 478,305 475,298" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,296 601,296 601,292 613,303 601,314 601,310 478,310 481,303 478,296" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<line x1="616" y1="304" x2="624" y2="301" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="297" x2="628" y2="273" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="273" x2="609" y2="271" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,304 624,301 628,297 628,273 609,271" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,266 486,266 486,262 474,273 486,284 486,280 609,280 606,273 609,266" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,264 488,264 488,260 476,271 488,282 488,278 611,278 608,271 611,264" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<text x="488" y="274" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [documented]</text>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="475,346 598,346 598,342 610,353 598,364 598,360 475,360 478,353 475,346" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,344 601,344 601,340 613,351 601,362 601,358 478,358 481,351 478,344" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="616" y1="352" x2="654" y2="343" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="658" y1="339" x2="658" y2="100" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="658" y1="100" x2="609" y2="95" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,352 654,343 658,339 658,100 609,95" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,90 486,90 486,86 474,97 486,108 486,104 609,104 606,97 609,90" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,88 488,88 488,84 476,95 488,106 488,102 611,102 608,95 611,88" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<text x="488" y="98" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [documented]</text>
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_2">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="142" x="137" y="376" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="142" x="141" y="372" rx="0" ry="0" fill="#ffe6e6" stroke="Maroon" stroke-width="1" />
+<g>
+<text x="194" y="449" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="203" y="448" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="203" y="448" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to add Fact to My DSL vocabulary</a></tspan>
+</text>
+</g>
+<line x1="142" y1="376" x2="142" y2="390" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="400" x2="142" y2="414" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="424" x2="142" y2="438" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="448" x2="142" y2="462" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="472" x2="142" y2="486" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="496" x2="142" y2="510" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="376" x2="473" y2="390" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_8">
+<!-- WireArc -->
+<polyline points="133,378 108,378 108,374 96,385 108,396 108,392 133,392 130,385 133,378" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,376 110,376 110,372 98,383 110,394 110,390 135,390 132,383 135,376" stroke="purple" stroke-width="1" stroke-dasharray="none"  fill="#ffeaff" />
+<line x1="97" y1="384" x2="89" y2="381" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="377" x2="85" y2="308" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="308" x2="89" y2="304" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,384 89,381 85,377 85,308 89,304 100,303" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,298 122,298 122,294 134,305 122,316 122,312 97,312 100,305 97,298" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,296 125,296 125,292 137,303 125,314 125,310 100,310 103,303 100,296" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_7">
+<!-- WireArc -->
+<polyline points="133,402 108,402 108,398 96,409 108,420 108,416 133,416 130,409 133,402" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,400 110,400 110,396 98,407 110,418 110,414 135,414 132,407 135,400" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="112" y="410" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">opt</text>
+<line x1="97" y1="408" x2="74" y2="402" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="398" x2="70" y2="181" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="181" x2="74" y2="177" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,408 74,402 70,398 70,181 74,177 100,175" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,170 122,170 122,166 134,177 122,188 122,184 97,184 100,177 97,170" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,168 125,168 125,164 137,175 125,186 125,182 100,182 103,175 100,168" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="133,426 108,426 108,422 96,433 108,444 108,440 133,440 130,433 133,426" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,424 110,424 110,420 98,431 110,442 110,438 135,438 132,431 135,424" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="97" y1="432" x2="44" y2="420" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="40" y1="416" x2="40" y2="54" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="40" y1="54" x2="44" y2="50" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,432 44,420 40,416 40,54 44,50 100,47" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,42 122,42 122,38 134,49 122,60 122,56 97,56 100,49 97,42" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,40 125,40 125,36 137,47 125,58 125,54 100,54 103,47 100,40" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_4">
+<!-- WireArc -->
+<polyline points="133,474 108,474 108,470 96,481 108,492 108,488 133,488 130,481 133,474" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,472 110,472 110,468 98,479 110,490 110,486 135,486 132,479 135,472" stroke="#004d00" stroke-width="1" stroke-dasharray="none"  fill="#f1fdf1" />
+<line x1="97" y1="480" x2="44" y2="492" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="40" y1="496" x2="40" y2="664" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="40" y1="664" x2="44" y2="668" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,480 44,492 40,496 40,664 44,668 100,671" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,666 122,666 122,662 134,673 122,684 122,680 97,680 100,673 97,666" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,664 125,664 125,660 137,671 125,682 125,678 100,678 103,671 100,664" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_6">
+<!-- WireArc -->
+<polyline points="133,498 108,498 108,494 96,505 108,516 108,512 133,512 130,505 133,498" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,496 110,496 110,492 98,503 110,514 110,510 135,510 132,503 135,496" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+<text x="112" y="506" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">opt</text>
+<line x1="97" y1="504" x2="74" y2="510" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="514" x2="70" y2="609" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="609" x2="74" y2="613" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,504 74,510 70,514 70,609 74,613 100,615" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,610 122,610 122,606 134,617 122,628 122,624 97,624 100,617 97,610" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,608 125,608 125,604 137,615 125,626 125,622 100,622 103,615 100,608" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_1">
+<!-- WireArc -->
+<polyline points="475,378 598,378 598,374 610,385 598,396 598,392 475,392 478,385 475,378" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,376 601,376 601,372 613,383 601,394 601,390 478,390 481,383 478,376" stroke="#004d4d" stroke-width="1" stroke-dasharray="none"  fill="#e6ffff" />
+<line x1="616" y1="384" x2="624" y2="387" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="391" x2="628" y2="726" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="726" x2="609" y2="727" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,384 624,387 628,391 628,726 609,727" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,722 486,722 486,718 474,729 486,740 486,736 609,736 606,729 609,722" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,720 488,720 488,716 476,727 488,738 488,734 611,734 608,727 611,720" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<text x="488" y="730" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [registered]</text>
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_13">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="46" x="137" y="528" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="46" x="141" y="524" rx="0" ry="0" fill="White" stroke="Black" stroke-width="1" />
+<text x="223" y="552" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="223" y="552" dx="77" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">...</a></tspan>
+</text>
+<line x1="142" y1="528" x2="142" y2="542" stroke="Black" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="552" x2="142" y2="566" stroke="Black" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_6">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="70" x="137" y="584" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="70" x="141" y="580" rx="0" ry="0" fill="#f9f0eb" stroke="sienna" stroke-width="1" />
+<g>
+<text x="246" y="621" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="255" y="620" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="255" y="620" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to specify my Fact</a></tspan>
+</text>
+</g>
+<line x1="142" y1="584" x2="142" y2="598" stroke="sienna" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="608" x2="142" y2="622" stroke="sienna" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="584" x2="473" y2="598" stroke="sienna" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="608" x2="473" y2="622" stroke="sienna" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="632" x2="473" y2="646" stroke="sienna" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_13">
+<!-- WireArc -->
+<polyline points="133,586 108,586 108,582 96,593 108,604 108,600 133,600 130,593 133,586" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,584 110,584 110,580 98,591 110,602 110,598 135,598 132,591 135,584" stroke="sienna" stroke-width="1" stroke-dasharray="none"  fill="#f9f0eb" />
+<line x1="97" y1="592" x2="89" y2="589" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="585" x2="85" y2="564" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="564" x2="89" y2="560" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,592 89,589 85,585 85,564 89,560 100,559" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,554 122,554 122,550 134,561 122,572 122,568 97,568 100,561 97,554" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,552 125,552 125,548 137,559 125,570 125,566 100,566 103,559 100,552" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_7">
+<!-- WireArc -->
+<polyline points="475,610 598,610 598,606 610,617 598,628 598,624 475,624 478,617 475,610" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,608 601,608 601,604 613,615 601,626 601,622 478,622 481,615 478,608" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<line x1="616" y1="616" x2="684" y2="601" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="688" y1="597" x2="688" y2="207" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="688" y1="207" x2="609" y2="199" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,616 684,601 688,597 688,207 609,199" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,194 486,194 486,190 474,201 486,212 486,208 609,208 606,201 609,194" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,192 488,192 488,188 476,199 488,210 488,206 611,206 608,199 611,192" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+<text x="488" y="202" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [parametrized]</text>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="475,634 598,634 598,630 610,641 598,652 598,648 475,648 478,641 475,634" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,632 601,632 601,628 613,639 601,650 601,646 478,646 481,639 478,632" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="616" y1="640" x2="699" y2="622" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="703" y1="618" x2="703" y2="80" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="703" y1="80" x2="609" y2="71" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,640 699,622 703,618 703,80 609,71" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,66 486,66 486,62 474,73 486,84 486,80 609,80 606,73 609,66" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,64 488,64 488,60 476,71 488,82 488,78 611,78 608,71 611,64" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  fill="#f7fceb" />
+<text x="488" y="74" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [parametrized]</text>
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_4">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="46" x="137" y="664" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="46" x="141" y="660" rx="0" ry="0" fill="#f7fceb" stroke="#394d00" stroke-width="1" />
+<g>
+<text x="248" y="689" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="257" y="688" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="257" y="688" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to define my Fact</a></tspan>
+</text>
+</g>
+<line x1="142" y1="664" x2="142" y2="678" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="664" x2="473" y2="678" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="688" x2="473" y2="702" stroke="#394d00" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_7">
+<!-- WireArc -->
+<polyline points="475,666 598,666 598,662 610,673 598,684 598,680 475,680 478,673 475,666" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,664 601,664 601,660 613,671 601,682 601,678 478,678 481,671 478,664" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<line x1="616" y1="672" x2="714" y2="651" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="718" y1="647" x2="718" y2="186" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="718" y1="186" x2="609" y2="175" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,672 714,651 718,647 718,186 609,175" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,170 486,170 486,166 474,177 486,188 486,184 609,184 606,177 609,170" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,168 488,168 488,164 476,175 488,186 488,182 611,182 608,175 611,168" stroke="#004d00" stroke-width="1" stroke-dasharray="none"  fill="#f1fdf1" />
+<text x="488" y="178" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [labeled]</text>
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_5">
+<!-- WireArc -->
+<polyline points="475,690 598,690 598,686 610,697 598,708 598,704 475,704 478,697 475,690" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,688 601,688 601,684 613,695 601,706 601,702 478,702 481,695 478,688" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<line x1="616" y1="696" x2="729" y2="672" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="733" y1="668" x2="733" y2="59" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="733" y1="59" x2="609" y2="47" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,696 729,672 733,668 733,59 609,47" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,42 486,42 486,38 474,49 486,60 486,56 609,56 606,49 609,42" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,40 488,40 488,36 476,47 488,58 488,54 611,54 608,47 611,40" stroke="#004d00" stroke-width="1" stroke-dasharray="none"  fill="#f1fdf1" />
+<text x="488" y="50" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Fact spec [labeled]</text>
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_1">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="22" x="137" y="720" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="22" x="141" y="716" rx="0" ry="0" fill="#f1fdf1" stroke="#004d00" stroke-width="1" />
+<g>
+<text x="183" y="733" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="192" y="732" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="192" y="732" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to modify Fact in My DSL Vocabulary</a></tspan>
+</text>
+</g>
+<line x1="142" y1="720" x2="142" y2="734" stroke="#004d00" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="720" x2="473" y2="734" stroke="#004d00" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_3">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="22" x="137" y="752" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="22" x="141" y="748" rx="0" ry="0" fill="#e6ffff" stroke="#004d4d" stroke-width="1" />
+<g>
+<text x="153" y="765" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="162" y="764" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="162" y="764" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to cut repeating Fact hierarchy in my Schema</a></tspan>
+</text>
+</g>
+<line x1="142" y1="752" x2="142" y2="766" stroke="#004d4d" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_9">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="94" x="137" y="784" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="94" x="141" y="780" rx="0" ry="0" fill="#e6eeff" stroke="#002b80" stroke-width="1" />
+<g>
+<text x="229" y="833" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="238" y="832" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="238" y="832" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to edit My DSL Schema</a></tspan>
+</text>
+</g>
+<line x1="142" y1="784" x2="142" y2="798" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="808" x2="142" y2="822" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="832" x2="142" y2="846" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="142" y1="856" x2="142" y2="870" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="784" x2="473" y2="798" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_3">
+<!-- WireArc -->
+<polyline points="133,786 108,786 108,782 96,793 108,804 108,800 133,800 130,793 133,786" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,784 110,784 110,780 98,791 110,802 110,798 135,798 132,791 135,784" stroke="#002b80" stroke-width="1" stroke-dasharray="none"  fill="#e6eeff" />
+<text x="112" y="794" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">opt</text>
+<line x1="97" y1="792" x2="89" y2="789" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="785" x2="85" y2="764" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="85" y1="764" x2="89" y2="760" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,792 89,789 85,785 85,764 89,760 100,759" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,754 122,754 122,750 134,761 122,772 122,768 97,768 100,761 97,754" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,752 125,752 125,748 137,759 125,770 125,766 100,766 103,759 100,752" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_1">
+<!-- WireArc -->
+<polyline points="133,810 108,810 108,806 96,817 108,828 108,824 133,824 130,817 133,810" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,808 110,808 110,804 98,815 110,826 110,822 135,822 132,815 135,808" stroke="#004d4d" stroke-width="1" stroke-dasharray="none"  fill="#e6ffff" />
+<text x="112" y="818" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">opt</text>
+<line x1="97" y1="816" x2="74" y2="810" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="806" x2="70" y2="733" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="70" y1="733" x2="74" y2="729" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,816 74,810 70,806 70,733 74,729 100,727" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,722 122,722 122,718 134,729 122,740 122,736 97,736 100,729 97,722" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,720 125,720 125,716 137,727 125,738 125,734 100,734 103,727 100,720" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_2">
+<!-- WireArc -->
+<polyline points="133,834 108,834 108,830 96,841 108,852 108,848 133,848 130,841 133,834" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="135,832 110,832 110,828 98,839 110,850 110,846 135,846 132,839 135,832" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<text x="112" y="842" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">opt</text>
+<line x1="97" y1="840" x2="29" y2="825" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="25" y1="821" x2="25" y2="463" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="25" y1="463" x2="29" y2="459" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="100,840 29,825 25,821 25,463 29,459 100,455" stroke="Red" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="97,450 122,450 122,446 134,457 122,468 122,464 97,464 100,457 97,450" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="100,448 125,448 125,444 137,455 125,466 125,462 100,462 103,455 100,448" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_10">
+<!-- WireArc -->
+<polyline points="475,786 598,786 598,782 610,793 598,804 598,800 475,800 478,793 475,786" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,784 601,784 601,780 613,791 601,802 601,798 478,798 481,791 478,784" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<text x="488" y="794" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">(percolated)</text>
+<line x1="616" y1="792" x2="624" y2="795" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="799" x2="628" y2="998" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="998" x2="609" y2="999" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,792 624,795 628,799 628,998 609,999" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,994 486,994 486,990 474,1001 486,1012 486,1008 609,1008 606,1001 609,994" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,992 488,992 488,988 476,999 488,1010 488,1006 611,1006 608,999 611,992" stroke="#262673" stroke-width="1" stroke-dasharray="none"  fill="#ececf9" />
+<text x="488" y="1002" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">My DSL Schema snippet</text>
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_10">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="46" x="137" y="992" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="46" x="141" y="988" rx="0" ry="0" fill="#ffeaff" stroke="purple" stroke-width="1" />
+<g>
+<text x="256" y="1017" class="collapsible-trigger" onclick="toggle(this)" xml:space="preserve" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black">-</text>
+<text x="265" y="1016" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="265" y="1016" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to load schema</a></tspan>
+</text>
+</g>
+<line x1="142" y1="992" x2="142" y2="1006" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="992" x2="473" y2="1006" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="1016" x2="473" y2="1030" stroke="purple" stroke-width="1" stroke-dasharray="none"  />
+</g>
+<g class="collapsible-group" style="display:inline" data-ref-count="1" data-highlight-target="group_11">
+<!-- WireArc -->
+<polyline points="475,1018 598,1018 598,1014 610,1025 598,1036 598,1032 475,1032 478,1025 475,1018" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="478,1016 601,1016 601,1012 613,1023 601,1034 601,1030 478,1030 481,1023 478,1016" stroke="sienna" stroke-width="1" stroke-dasharray="none"  fill="#f9f0eb" />
+<line x1="616" y1="1024" x2="624" y2="1027" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="1031" x2="628" y2="1054" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<line x1="628" y1="1054" x2="609" y2="1055" stroke="White" stroke-width="4" stroke-dasharray="none"  />
+<polyline points="613,1024 624,1027 628,1031 628,1054 609,1055" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="none" />
+<!-- WireArrowhead -->
+<polyline points="609,1050 486,1050 486,1046 474,1057 486,1068 486,1064 609,1064 606,1057 609,1050" stroke="Grey" stroke-width="1" stroke-dasharray="none"  fill="Grey" />
+<polyline points="611,1048 488,1048 488,1044 476,1055 488,1066 488,1062 611,1062 608,1055 611,1048" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  fill="#ffe6e6" />
+<text x="488" y="1058" xml:space="preserve" font-size="9px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="normal" font-style="italic" fill="Black">Protonabu Schema AST</text>
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_11">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="22" x="137" y="1048" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="22" x="141" y="1044" rx="0" ry="0" fill="#ffe6e6" stroke="Maroon" stroke-width="1" />
+<text x="189" y="1060" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="189" y="1060" dx="0" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">to design My Domain Object Model</a></tspan>
+</text>
+<line x1="142" y1="1048" x2="142" y2="1062" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+<line x1="473" y1="1048" x2="473" y2="1062" stroke="Maroon" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+<!-- WireBox -->
+<g class="collapsible-group" style="display:inline" id="group_14">
+<g class="collapsible-group" style="display:inline" data-ref-count="1">
+<rect width="333" height="22" x="137" y="1080" rx="0" ry="0" fill="Grey" stroke="Grey" stroke-width="1" />
+<rect width="333" height="22" x="141" y="1076" rx="0" ry="0" fill="White" stroke="Black" stroke-width="1" />
+<text x="216" y="1092" font-size="12px" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-style="normal" fill="Black" text-decoration="underline">
+	<tspan xml:space="preserve" x="216" y="1092" dx="84" dy="0.0em"><a href="/Products/ProtonabuUsageGuide/useCases/DefiningMyDSLSchema/0001.html">...</a></tspan>
+</text>
+<line x1="142" y1="1080" x2="142" y2="1094" stroke="Black" stroke-width="1" stroke-dasharray="none"  />
+</g>
+</g>
+</svg>

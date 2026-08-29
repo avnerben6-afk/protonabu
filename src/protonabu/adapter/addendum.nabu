@@ -1,0 +1,36 @@
+PRODUCT: Snippet Adapter Package
+    ID
+        PROPERTY [AUTHOR]: Avner Ben
+            BULLET [CREATED]: 17-May-2026
+            BULLET [IMPROVED]: 24-Aug-2026
+        PROPERTY [GENERATOR]: Antigravity (Gemini 3.7 Flash)
+            BULLET [IMPROVED]: 24-Aug-2026
+
+    USE CASE: to adapt snippet input using registered adapter
+        TITLE: Adapting Snippet Input from Foreign Format
+        REQUIRES: to get Snippet Adapter by file name
+        REQUIRES: to adapt snippet input from foreign format
+
+    USE CASE: to adapt snippet output using registered adapter
+        TITLE: Adapting Snippet Output to Foreign Format
+        REQUIRES: to get Snippet Adapter by file name
+        REQUIRES: to adapt snippet output to foreign format
+
+    USE CASE: to register Snippet Adapter
+        TITLE: Registering Snippet Adapter in Factory
+        REQUIRES: to register Snippet Adapter
+
+    USE CASE: to perform Snippet Adapter Test Cases
+        TITLE: Performing Snippet Adapter Test Cases
+        SCENARIO: Full Snippet Adapter test
+        IN SCENARIO [Full Snippet Adapter test]: to INITIALIZE Snippet Adapter Test Case [FOR to INITIALIZE test case]
+        REQUIRES: to perform Unit Test
+            SCANNING: "test cases"
+            REQUIRES: to INITIALIZE Snippet Adapter Test Case
+            REQUIRES: to perform Snippet Adapter test case
+                REQUIRES: to test Snippet Adapter factory registration
+                REQUIRES: to test Markdown input line adaptation
+                REQUIRES: to test Markdown output line adaptation
+                REQUIRES: to test full Markdown snippet iteration
+                REQUIRES: to test JSON round-trip
+                REQUIRES: to test XML round-trip
