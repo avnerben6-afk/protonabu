@@ -25,3 +25,4 @@ testArea/
 .venv/
 env/
 venv/
+*~

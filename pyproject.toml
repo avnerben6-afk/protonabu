@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Open source infrastructure for authoring Domain-Specific Languages (DSLs), originally facilitating the Nabu Design Language"
 readme = "README.md"
 authors = [
-    { name = "Avner Ben" }
+    { name = "Avner Ben", email = "avnerben6@gmail.com" }
 ]
 license = { text = "MIT" }
 requires-python = ">=3.10"

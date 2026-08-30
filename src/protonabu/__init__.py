@@ -1,3 +1,6 @@
+""" Protonabu DSL Infrastructure Version """
+__version__ = '1.0.0'
+
 from .rawFact import RawFact
 from .tokenizedFact import TokenizedFact
 from .factSnippet import (
