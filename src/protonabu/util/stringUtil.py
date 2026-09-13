@@ -6,6 +6,8 @@
             - Moved here from the Nabu project
         - Improved: 30-Aug-2026
             - Clean synthetic in-code annotations
+        - Improved: 13-Sep-2026
+            - Added suggestSimilar method to NameMaker with RapidFuzz and difflib fallback
 """
 
 import time
@@ -379,6 +381,54 @@ class NameMaker:
             - Exported
         """
         self._registries.clear()
+
+    def suggestSimilar(
+        self,
+        name: str,
+        scope: Any = None,
+        limit: int = 3,
+        cutoff: float = 0.6
+    ) -> list[str]:
+        """ to suggest similar names from scope registry
+            - Exported
+            - Input: name
+            - Input [Opt "None"]: scope
+            - Input [Opt "3"]: limit
+            - Input [Opt "0.6"]: cutoff
+            - Output: candidate names
+        """
+        # [Esc]: empty name
+        if not name:
+            return []
+
+        # to collect candidate pool from target registry or all registries
+        candidates: set[str] = set()
+        if scope is not None:
+            if scope in self._registries:
+                candidates.update(self._registries[scope].keys())
+        else:
+            for reg in self._registries.values():
+                candidates.update(reg.keys())
+
+        # [Esc]: no candidates in scope
+        if not candidates:
+            return []
+
+        # [Guard]: to try RapidFuzz fuzzy candidate matching
+        try:
+            from rapidfuzz import process, fuzz
+            matches = process.extract(
+                name,
+                candidates,
+                scorer=fuzz.ratio,
+                limit=limit,
+                score_cutoff=cutoff * 100.0
+            )
+            return [m[0] for m in matches]
+        # [Esc Error]: RapidFuzz not installed, fallback to difflib
+        except ImportError:
+            import difflib
+            return difflib.get_close_matches(name, list(candidates), n=limit, cutoff=cutoff)
 
     def unMakeProgrammaticName(
             self,

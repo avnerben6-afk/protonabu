@@ -5,6 +5,8 @@
         - Generated: 28-Aug-2026
 """
 
+import unittest
+from hypothesis import given, strategies as st
 from .testing import BaseTestCase, TestData, test
 from .util.loops import (
     first,
@@ -18,6 +20,11 @@ from .util.loops import (
     firstValid,
     iterUp,
     iterUps,
+    peekable,
+    chunked,
+    pairwise,
+    one,
+    partition,
 )
 
 testData = {
@@ -75,6 +82,11 @@ testData = {
         title="iterUp on root node with no parent",
         testInput=None,
         expectedOutput="none"
+    ),
+    12: TestData(
+        title="more-itertools re-exports (chunked, pairwise, peekable, one, partition)",
+        testInput=None,
+        expectedOutput="chunked=[[1, 2], [3, 4]], pairwise=[(1, 2), (2, 3)], peek=1, one=42, partition=([1, 3], [2, 4])"
     ),
 }
 
@@ -182,13 +194,55 @@ class LoopUtilitiesTestCase(BaseTestCase):
             chain = list(iterUp('StandaloneRoot', lambda n: None))
             return ' -> '.join(chain) if chain else 'none'
 
+        elif self.testIndex == 12:
+            ch = list(chunked([1, 2, 3, 4], 2))
+            pw = list(pairwise([1, 2, 3]))
+            p = peekable([1, 2, 3])
+            peek_val = p.peek()
+            one_val = one([42])
+            odds, evens = partition(lambda x: x % 2 == 0, [1, 2, 3, 4])
+            return f"chunked={ch}, pairwise={pw}, peek={peek_val}, one={one_val}, partition=({list(odds)}, {list(evens)})"
+
         return "Unknown test index"
+
+
+class LoopPropertyTestCase(unittest.TestCase):
+    """ Property-based tests for loop utilities using Hypothesis
+    """
+    @given(st.lists(st.integers()))
+    def test_first_matches_head(self, xs):
+        if xs:
+            self.assertEqual(first(xs), xs[0])
+        else:
+            self.assertIsNone(first(xs))
+
+    @given(st.lists(st.integers()), st.integers())
+    def test_first_respects_default(self, xs, default_val):
+        if xs:
+            self.assertEqual(first(xs, default=default_val), xs[0])
+        else:
+            self.assertEqual(first(xs, default=default_val), default_val)
+
+    @given(st.lists(st.integers()))
+    def test_count_matches_filter_length(self, xs):
+        self.assertEqual(count(xs, lambda x: x > 0), len([x for x in xs if x > 0]))
+
+    @given(st.lists(st.integers()))
+    def test_find_matches_first_filter(self, xs):
+        positives = [x for x in xs if x > 0]
+        expected = positives[0] if positives else None
+        self.assertEqual(find(xs, lambda x: x > 0), expected)
 
 
 def main(isRefreshExpectedTestData: bool = False) -> tuple[bool, int]:
     """ to perform Protonabu loop utilities test suite
     """
-    return test(LoopUtilitiesTestCase, testData.keys(), isRefreshExpectedTestData)
+    ok_data, errors_data = test(LoopUtilitiesTestCase, testData.keys(), isRefreshExpectedTestData)
+    prop_suite = unittest.TestLoader().loadTestsFromTestCase(LoopPropertyTestCase)
+    prop_res = unittest.TextTestRunner(verbosity=2).run(prop_suite)
+    all_ok = ok_data and prop_res.wasSuccessful()
+    total_errors = errors_data + len(prop_res.errors) + len(prop_res.failures)
+    return all_ok, total_errors
 
 
 if __name__ == '__main__':

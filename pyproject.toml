@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "protonabu"
-version = "1.0.0"
+version = "1.0.1"
 description = "Open source infrastructure for authoring Domain-Specific Languages (DSLs), originally facilitating the Nabu Design Language"
 readme = "README.md"
 authors = [
@@ -27,6 +27,12 @@ classifiers = [
 ]
 dependencies = [
     "pyparsing>=3.0.0",
+    "more-itertools>=10.0.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "hypothesis>=6.0.0",
 ]
 
 [tool.setuptools.packages.find]

@@ -5,6 +5,8 @@
         - Generated: 28-Aug-2026
 """
 
+import unittest
+from hypothesis import given, strategies as st
 from .testing import BaseTestCase, TestData, test
 from .util.stringUtil import (
     IdCounter,
@@ -102,6 +104,11 @@ testData = {
         title="makeBilingualName and concatModifiers",
         testInput=None,
         expectedOutput="Name (Hebrew) | Opt; State"
+    ),
+    16: TestData(
+        title="NameMaker suggestSimilar candidate retrieval",
+        testInput="PropertyMngr",
+        expectedOutput="['PropertyManager']"
     ),
 }
 
@@ -202,13 +209,53 @@ class StringUtilTestCase(BaseTestCase):
             mods = concatModifiers(["Opt", "", "State"])
             return f"{bi} | {mods}"
 
+        elif self.testIndex == 16:
+            nameMaker.clearRegistries()
+            nameMaker.register("PropertyManager", ["ScopeA"])
+            nameMaker.register("ProjectManager", ["ScopeA"])
+            nameMaker.register("Accountant", ["ScopeA"])
+            suggestions = nameMaker.suggestSimilar("PropertyMngr", scope="ScopeA")
+            return str(suggestions)
+
         return "Unknown test index"
+
+
+class StringUtilPropertyTestCase(unittest.TestCase):
+    """ Property-based tests for string utilities using Hypothesis
+    """
+    @given(st.lists(st.text(alphabet=st.characters(min_codepoint=65, max_codepoint=90), min_size=2, max_size=8), min_size=2, max_size=15))
+    def test_name_maker_uniqueness_guarantee(self, raw_names):
+        nameMaker.clearRegistries()
+        generated = []
+        for n in raw_names:
+            unique = nameMaker.makeUniqueProgrammaticName(f"Entity{n}", scopes=["testScope"])
+            generated.append(unique)
+        self.assertEqual(len(generated), len(set(generated)))
+
+    @given(st.sampled_from(['to', 'the', 'a', 'an', 'of', 'at', 'by', 'in', 'on', 'with', 'for', 'from']))
+    def test_trailing_preposition_stripping(self, prep):
+        result = nameMaker.makeProgrammaticName(f"update data {prep}", capFirst=False)
+        self.assertEqual(result, "updateData")
+    @given(st.text(alphabet=st.characters(blacklist_characters='"\'[]', blacklist_categories=('Cs', 'Cc', 'Z'))).filter(lambda s: len(s) > 0))
+    def test_unquote_quote_roundtrip(self, s):
+        quoted = f'"{s}"'
+        self.assertEqual(unquote(quoted), s)
+
+    @given(st.text(alphabet=st.characters(blacklist_characters='"\'[]', blacklist_categories=('Cs', 'Cc', 'Z'))).filter(lambda s: len(s) > 0))
+    def test_unbracket_bracket_roundtrip(self, s):
+        bracketed = f'[{s}]'
+        self.assertEqual(unbracket(bracketed), s)
 
 
 def main(isRefreshExpectedTestData: bool = False) -> tuple[bool, int]:
     """ to perform String Util test suite
     """
-    return test(StringUtilTestCase, testData.keys(), isRefreshExpectedTestData)
+    ok_data, errors_data = test(StringUtilTestCase, testData.keys(), isRefreshExpectedTestData)
+    prop_suite = unittest.TestLoader().loadTestsFromTestCase(StringUtilPropertyTestCase)
+    prop_res = unittest.TextTestRunner(verbosity=2).run(prop_suite)
+    all_ok = ok_data and prop_res.wasSuccessful()
+    total_errors = errors_data + len(prop_res.errors) + len(prop_res.failures)
+    return all_ok, total_errors
 
 
 if __name__ == '__main__':

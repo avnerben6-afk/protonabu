@@ -13,6 +13,7 @@ __all__ = [
     'Error', 'InternalError', 'FactFileError', 'ParsingError',
     'first', 'find', 'findBehind', 'findIndex', 'findNested', 'exists', 'count',
     'findNoCase', 'firstValid', 'iterUp', 'iterUps',
+    'peekable', 'chunked', 'pairwise', 'one', 'partition',
     'upName', 'capName', 'unCapName', 'makeUnique', 'cleanEnd', 'unquote',
     'unbracket', 'quoteIf', 'quote', 'toCamel', 'unCamel', 'sanitizeProgrammaticName',
     'makeBilingualName', 'concatModifiers', 'pluralize', 'parseDocDate', 'restoreDocDate',

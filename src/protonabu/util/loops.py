@@ -3,22 +3,28 @@
         - Created: 1-Jan-2020
         - Improved: 28-Aug-2026
             - Moved here from the Nabu project
+        - Improved: 13-Sep-2026
+            - Integrated more-itertools for sequence traversal and re-exported core iter utilities
 """
 
 from typing import Iterable, Iterator, Callable, Any, Optional
+from more_itertools import (
+    first as _more_first,
+    peekable,
+    chunked,
+    pairwise,
+    one,
+    partition
+)
 
-def first(anIterable) -> Optional[Any]:
+def first(anIterable: Iterable, default: Any = None) -> Optional[Any]:
     """ to retrieve first element in iterable efficiently
         - Exported
         - Input: an Iterable
+        - Input [OPT "None"]: default
         - Output: result
     """
-    # [Guard]: to extract from iterable
-    try:
-        return next(iter(anIterable))
-    # [Esc Done]: StopIteration
-    except StopIteration:
-        return None
+    return _more_first(anIterable, default=default)
 
 def find(where: Iterable, cmp: Callable[[Any], bool]) -> Any:
     """ to find first occurrence in iterable
